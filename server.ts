@@ -1309,7 +1309,7 @@ async function startServer() {
     console.log(`=========================================`);
     console.log(`MUNDAAI — Smart Farming Zimbabwe`);
     console.log(`AI Agronomist server running at http://0.0.0.0:${PORT}`);
-    console.log(`WhatsApp Hotline: +1 (646) 589-4168`);
+    console.log(`WhatsApp Hotline: +1 (555) 187-2696`);
     console.log(`AI Engine: ${process.env.GEMINI_API_KEY ? "Live Model Connected" : "Agronomic Model Active"}`);
     console.log(`=========================================`);
   });

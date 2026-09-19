@@ -45,7 +45,11 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
         <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="max-w-2xl space-y-6">
             <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-stone-950/80 text-stone-200 border border-stone-800 shadow-sm">
-              <MundaAiLogo variant="icon" size="sm" iconClassName="w-4 h-4 rounded-md" />
+              <MundaAiLogo
+                variant="icon"
+                size="sm"
+                iconClassName="w-4 h-4 rounded-md"
+              />
               <span>mundaai • Smart Farming Zimbabwe</span>
             </div>
 
@@ -129,7 +133,7 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#25D366] animate-pulse" />
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
-                Official WhatsApp Advisory Portal • +1 (646) 589-4168
+                Official WhatsApp Advisory Portal • +1 (555) 187-2696
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white mt-1 font-['Outfit',sans-serif]">
@@ -148,7 +152,9 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
         </div>
 
         <p className="text-xs sm:text-sm text-stone-200">
-          Have an urgent question about pest outbreaks, rainfall windows, or Pfumvudza fertilizer? Ask right here or jump straight to our verified WhatsApp line.
+          Have an urgent question about pest outbreaks, rainfall windows, or
+          Pfumvudza fertilizer? Ask right here or jump straight to our verified
+          WhatsApp line.
         </p>
 
         <div className="flex flex-col sm:flex-row items-stretch gap-2 pt-1">
@@ -161,16 +167,26 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
               if (e.key === "Enter") {
                 const val = (e.target as HTMLInputElement).value;
                 if (val.trim()) {
-                  window.open(`https://wa.me/16465894168?text=${encodeURIComponent(val.trim())}`, "_blank");
+                  window.open(
+                    `https://wa.me/16465894168?text=${encodeURIComponent(val.trim())}`,
+                    "_blank",
+                  );
                 }
               }
             }}
           />
           <button
             onClick={() => {
-              const input = document.getElementById("home-quick-query") as HTMLInputElement;
-              const val = input?.value?.trim() || "Mhoroi mundaai, ndinoda rubatsiro rwekurima";
-              window.open(`https://wa.me/16465894168?text=${encodeURIComponent(val)}`, "_blank");
+              const input = document.getElementById(
+                "home-quick-query",
+              ) as HTMLInputElement;
+              const val =
+                input?.value?.trim() ||
+                "Mhoroi mundaai, ndinoda rubatsiro rwekurima";
+              window.open(
+                `https://wa.me/16465894168?text=${encodeURIComponent(val)}`,
+                "_blank",
+              );
             }}
             className="px-5 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-stone-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-colors whitespace-nowrap"
           >
@@ -198,7 +214,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             </h2>
           </div>
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-stone-100 text-stone-700">
-            Active Profile: <strong>{farmer.name} (Mashonaland West • 2ha Maize)</strong>
+            Active Profile:{" "}
+            <strong>{farmer.name} (Mashonaland West • 2ha Maize)</strong>
           </span>
         </div>
 
@@ -215,7 +232,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
                 "My maize leaves are turning yellow."
               </h3>
               <p className="text-xs text-stone-600 mt-1">
-                The AI asks diagnostic follow-up questions instead of leaping to premature conclusions.
+                The AI asks diagnostic follow-up questions instead of leaping to
+                premature conclusions.
               </p>
             </div>
             <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-3">
@@ -235,7 +253,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
                 "Should I irrigate my maize today?"
               </h3>
               <p className="text-xs text-stone-600 mt-1">
-                Queries live weather forecasts and soil telemetry to synthesize irrigation decisions.
+                Queries live weather forecasts and soil telemetry to synthesize
+                irrigation decisions.
               </p>
             </div>
             <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-3">
@@ -255,7 +274,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
                 Scan Maize Leaf Photograph
               </h3>
               <p className="text-xs text-stone-600 mt-1">
-                Analyzes visible symptoms into structured diagnosis cards with confidence ratings.
+                Analyzes visible symptoms into structured diagnosis cards with
+                confidence ratings.
               </p>
             </div>
             <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-3">
@@ -275,7 +295,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
                 "Where should I sell my grain?"
               </h3>
               <p className="text-xs text-stone-600 mt-1">
-                Retrieves Mbare Musika vs GMB statutory rates with rural transport deduction economics.
+                Retrieves Mbare Musika vs GMB statutory rates with rural
+                transport deduction economics.
               </p>
             </div>
             <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-3">
@@ -295,7 +316,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
                 "Is SC 719 & Fert in Stock?"
               </h3>
               <p className="text-xs text-stone-600 mt-1">
-                Direct connection to Seed Co, Windmill & ZFC showing live depot availability status.
+                Direct connection to Seed Co, Windmill & ZFC showing live depot
+                availability status.
               </p>
             </div>
             <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-3">
@@ -315,7 +337,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             Bridging Zimbabwe's Agricultural Knowledge Gap
           </h2>
           <p className="text-stone-600 text-sm">
-            Turning fragmented agricultural data into timely, life-changing farming decisions.
+            Turning fragmented agricultural data into timely, life-changing
+            farming decisions.
           </p>
         </div>
 
@@ -326,7 +349,9 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             </div>
             <h3 className="font-bold text-stone-900 text-sm">THE PROBLEM</h3>
             <p className="text-xs text-stone-600 leading-relaxed">
-              Pests like Fall Armyworm, drought, and volatile market prices threaten smallholder yields. Agricultural guidance is often fragmented or delayed.
+              Pests like Fall Armyworm, drought, and volatile market prices
+              threaten smallholder yields. Agricultural guidance is often
+              fragmented or delayed.
             </p>
           </div>
 
@@ -336,7 +361,9 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             </div>
             <h3 className="font-bold text-stone-900 text-sm">THE SOLUTION</h3>
             <p className="text-xs text-stone-600 leading-relaxed">
-              mundaai: An AI Agronomist in every farmer’s pocket. Understands questions, photographs, and field conditions in English, Shona, and Ndebele.
+              mundaai: An AI Agronomist in every farmer’s pocket. Understands
+              questions, photographs, and field conditions in English, Shona,
+              and Ndebele.
             </p>
           </div>
 
@@ -346,7 +373,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             </div>
             <h3 className="font-bold text-white text-sm">MUNDAAI ENGINE</h3>
             <p className="text-xs text-emerald-100 leading-relaxed">
-              <strong>See → Understand → Reason → Retrieve → Explain.</strong> Multimodal image diagnosis combined with real-time tool calling.
+              <strong>See → Understand → Reason → Retrieve → Explain.</strong>{" "}
+              Multimodal image diagnosis combined with real-time tool calling.
             </p>
           </div>
 
@@ -356,7 +384,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             </div>
             <h3 className="font-bold text-stone-900 text-sm">THE ACTION</h3>
             <p className="text-xs text-stone-600 leading-relaxed">
-              <strong>What should I do next?</strong> Farmers receive precise, actionable steps instead of abstract technical summaries.
+              <strong>What should I do next?</strong> Farmers receive precise,
+              actionable steps instead of abstract technical summaries.
             </p>
           </div>
 
@@ -366,7 +395,8 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             </div>
             <h3 className="font-bold text-stone-900 text-sm">THE IMPACT</h3>
             <p className="text-xs text-stone-600 leading-relaxed">
-              Reduced crop losses, optimized fertilizer usage, conserved irrigation water, and resilient food security across Zimbabwe.
+              Reduced crop losses, optimized fertilizer usage, conserved
+              irrigation water, and resilient food security across Zimbabwe.
             </p>
           </div>
         </div>
@@ -393,7 +423,9 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
           <div className="bg-stone-800/80 rounded-xl p-5 border border-stone-700 space-y-3">
             <div className="flex items-center gap-2 text-emerald-400">
               <Cpu className="w-5 h-5" />
-              <h3 className="font-bold text-sm text-white">LAYER 1 • UNDERSTAND</h3>
+              <h3 className="font-bold text-sm text-white">
+                LAYER 1 • UNDERSTAND
+              </h3>
             </div>
             <p className="text-xs text-stone-300 leading-relaxed">
               Processes multimodal farmer inputs:
@@ -410,16 +442,34 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
           <div className="bg-stone-800/80 rounded-xl p-5 border border-stone-700 space-y-3">
             <div className="flex items-center gap-2 text-blue-400">
               <Layers className="w-5 h-5" />
-              <h3 className="font-bold text-sm text-white">LAYER 2 • CONNECT</h3>
+              <h3 className="font-bold text-sm text-white">
+                LAYER 2 • CONNECT
+              </h3>
             </div>
             <p className="text-xs text-stone-300 leading-relaxed">
               Executes grounded tools when external data is needed:
             </p>
             <ul className="text-xs text-stone-400 space-y-1.5 list-disc list-inside">
-              <li><code className="text-emerald-300">getWeather(location)</code> 48h rain forecast</li>
-              <li><code className="text-emerald-300">getSoilMoisture(zone)</code> IoT sensors</li>
-              <li><code className="text-emerald-300">getMarketPrices(commodity)</code> GMB/Mbare</li>
-              <li><code className="text-emerald-300">getAgriculturalKnowledge()</code> Agritex RAG</li>
+              <li>
+                <code className="text-emerald-300">getWeather(location)</code>{" "}
+                48h rain forecast
+              </li>
+              <li>
+                <code className="text-emerald-300">getSoilMoisture(zone)</code>{" "}
+                IoT sensors
+              </li>
+              <li>
+                <code className="text-emerald-300">
+                  getMarketPrices(commodity)
+                </code>{" "}
+                GMB/Mbare
+              </li>
+              <li>
+                <code className="text-emerald-300">
+                  getAgriculturalKnowledge()
+                </code>{" "}
+                Agritex RAG
+              </li>
             </ul>
           </div>
 
