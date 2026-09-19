@@ -216,7 +216,7 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
             BOT LINE: +1 (555) 187-2696
           </span>
           <a
-            href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
+            href="https://wa.me/15551872696?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
             target="_blank"
             rel="noopener noreferrer"
             className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#25D366] hover:bg-[#20bd5a] text-stone-950 flex items-center gap-1.5 shadow transition-colors"
@@ -413,7 +413,7 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
             {/* Real QR Code Card */}
             <div className="p-4 bg-white rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-stone-950 shadow-lg">
               <a
-                href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
+                href="https://wa.me/15551872696?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Click to open WhatsApp directly"
@@ -437,7 +437,7 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
                 </div>
                 <div className="pt-2">
                   <a
-                    href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
+                    href="https://wa.me/15551872696?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#20bd5a] text-stone-950 font-bold text-xs shadow-sm transition-colors"

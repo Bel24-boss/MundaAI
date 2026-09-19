@@ -141,7 +141,7 @@ export const HeroStory: React.FC<HeroStoryProps> = ({
             </h2>
           </div>
           <a
-            href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
+            href="https://wa.me/15551872696?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-stone-950 font-bold text-xs shadow-md transition-all self-start sm:self-auto"

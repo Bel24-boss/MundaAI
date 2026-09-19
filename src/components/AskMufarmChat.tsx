@@ -84,7 +84,10 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
       id: "initial",
       role: "assistant",
       content: getInitialWelcome(language, farmer),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       followUpQuestions: getInitialFollowUps(language),
       actionableNextStep: getInitialNextStep(language),
     },
@@ -93,7 +96,9 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
-  const [activeToolRunning, setActiveToolRunning] = useState<string | null>(null);
+  const [activeToolRunning, setActiveToolRunning] = useState<string | null>(
+    null,
+  );
 
   // Synchronize initial welcome message when user changes language
   useEffect(() => {
@@ -108,7 +113,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
           };
         }
         return msg;
-      })
+      }),
     );
   }, [language, farmer]);
 
@@ -200,7 +205,11 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
     ];
   }, [language]);
 
-  const translateMessage = async (msgId: string, text: string, targetLang: Language) => {
+  const translateMessage = async (
+    msgId: string,
+    text: string,
+    targetLang: Language,
+  ) => {
     setTranslatingId(msgId);
     try {
       const res = await fetch("/api/ai/translate", {
@@ -217,8 +226,8 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                   ...m,
                   content: data.translatedText,
                 }
-              : m
-          )
+              : m,
+          ),
         );
       }
     } catch (err) {
@@ -235,7 +244,10 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
       id: Date.now().toString(),
       role: "user",
       content: messageText,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -244,11 +256,29 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
 
     // If message implies tools, show brief tool indicator for visual delight
     const lower = messageText.toLowerCase();
-    if (lower.includes("irrigate") || lower.includes("water") || lower.includes("kudiridza") || lower.includes("nisele")) {
-      setActiveToolRunning("getWeather('Mashonaland West') & getSoilMoisture('zone-a')");
-    } else if (lower.includes("market") || lower.includes("sell") || lower.includes("mutengo") || lower.includes("gmb") || lower.includes("thengisa")) {
+    if (
+      lower.includes("irrigate") ||
+      lower.includes("water") ||
+      lower.includes("kudiridza") ||
+      lower.includes("nisele")
+    ) {
+      setActiveToolRunning(
+        "getWeather('Mashonaland West') & getSoilMoisture('zone-a')",
+      );
+    } else if (
+      lower.includes("market") ||
+      lower.includes("sell") ||
+      lower.includes("mutengo") ||
+      lower.includes("gmb") ||
+      lower.includes("thengisa")
+    ) {
       setActiveToolRunning("getMarketPrices('Maize')");
-    } else if (lower.includes("fertilizer") || lower.includes("pfumvudza") || lower.includes("mupfudze") || lower.includes("umquba")) {
+    } else if (
+      lower.includes("fertilizer") ||
+      lower.includes("pfumvudza") ||
+      lower.includes("mupfudze") ||
+      lower.includes("umquba")
+    ) {
       setActiveToolRunning("calculateFertilizer({ crop: 'Maize' })");
     }
 
@@ -269,8 +299,14 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.reply || data.fallback || "I received your question and reviewed your farm telemetry.",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        content:
+          data.reply ||
+          data.fallback ||
+          "I received your question and reviewed your farm telemetry.",
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         toolsExecuted: data.toolsExecuted || [],
         followUpQuestions: data.followUpQuestions || [],
         actionableNextStep: data.actionableNextStep,
@@ -289,9 +325,12 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
             language === "Shona"
               ? "Tine hurombo, paita dambudziko rekubata AI service. Ndapota ongororai netiweki yenyu moyedza zvakare."
               : language === "Ndebele"
-              ? "Uxolo, kube lohlupho lokufinyelela ku-AI service. Sicela lihlole inethiwekhi yenu bese lizama njalo."
-              : "Sorry, I had trouble reaching the AI service. Please check your connectivity or try again.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                ? "Uxolo, kube lohlupho lokufinyelela ku-AI service. Sicela lihlole inethiwekhi yenu bese lizama njalo."
+                : "Sorry, I had trouble reaching the AI service. Please check your connectivity or try again.",
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ]);
     } finally {
@@ -311,7 +350,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
               {t.chatEngineBadge}
             </span>
             <a
-              href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
+              href="https://wa.me/15551872696?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#25D366]/20 text-emerald-800 border border-[#25D366]/40 hover:bg-[#25D366]/30 transition-colors"
@@ -319,13 +358,19 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
               <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
               <span>{t.whatsAppBotBadge}</span>
             </a>
-            <span className="text-xs font-semibold text-stone-500">• {t.groundedToolsActive}</span>
+            <span className="text-xs font-semibold text-stone-500">
+              • {t.groundedToolsActive}
+            </span>
           </div>
           <h2 className="text-xl font-bold text-stone-900 mt-1 font-['Outfit',sans-serif]">
             {t.chatTitle}
           </h2>
           <p className="text-xs text-stone-600">
-            {t.farmContextPrefix} <strong>{farmer.name} • {farmer.district}, {farmer.naturalRegion} • {farmer.areaHa}ha {farmer.primaryCrop} ({farmer.variety})</strong>
+            {t.farmContextPrefix}{" "}
+            <strong>
+              {farmer.name} • {farmer.district}, {farmer.naturalRegion} •{" "}
+              {farmer.areaHa}ha {farmer.primaryCrop} ({farmer.variety})
+            </strong>
           </p>
         </div>
 
@@ -344,14 +389,18 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                       : "text-stone-600 hover:text-stone-900 hover:bg-stone-200"
                   }`}
                 >
-                  {lang === "Shona" ? "ChiShona" : lang === "Ndebele" ? "isiNdebele" : "English"}
+                  {lang === "Shona"
+                    ? "ChiShona"
+                    : lang === "Ndebele"
+                      ? "isiNdebele"
+                      : "English"}
                 </button>
               ))}
             </div>
           )}
 
           <a
-            href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
+            href="https://wa.me/15551872696?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-stone-950 text-xs font-bold shadow-sm transition-colors"
@@ -375,7 +424,11 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
             {t.presetScenariosHeader}
           </span>
           <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-            {language === "Shona" ? "ChiShona Chakabatidzwa" : language === "Ndebele" ? "isiNdebele Sisasebenza" : "English Active"}
+            {language === "Shona"
+              ? "ChiShona Chakabatidzwa"
+              : language === "Ndebele"
+                ? "isiNdebele Sisasebenza"
+                : "English Active"}
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -414,8 +467,14 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                 {msg.role === "assistant" && (
                   <div className="flex items-center justify-between border-b border-stone-200/80 pb-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <MundaAiLogo variant="icon" size="sm" iconClassName="w-6 h-6 rounded-md" />
-                      <span className="font-bold text-stone-900 font-['Outfit',sans-serif]">Mufarm Agronomist</span>
+                      <MundaAiLogo
+                        variant="icon"
+                        size="sm"
+                        iconClassName="w-6 h-6 rounded-md"
+                      />
+                      <span className="font-bold text-stone-900 font-['Outfit',sans-serif]">
+                        Mufarm Agronomist
+                      </span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-semibold border border-amber-200">
                         Zimbabwe
                       </span>
@@ -424,7 +483,9 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                       {/* Translate button if message might be in a different language */}
                       {msg.id !== "initial" && (
                         <button
-                          onClick={() => translateMessage(msg.id, msg.content, language)}
+                          onClick={() =>
+                            translateMessage(msg.id, msg.content, language)
+                          }
                           disabled={translatingId === msg.id}
                           className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-stone-700 transition-colors"
                           title={`Translate to ${language}`}
@@ -434,14 +495,16 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                             {translatingId === msg.id
                               ? "..."
                               : language === "Shona"
-                              ? "Dudzira kuChiShona"
-                              : language === "Ndebele"
-                              ? "Tolika ngesiNdebele"
-                              : "Translate to English"}
+                                ? "Dudzira kuChiShona"
+                                : language === "Ndebele"
+                                  ? "Tolika ngesiNdebele"
+                                  : "Translate to English"}
                           </span>
                         </button>
                       )}
-                      <span className="text-[10px] text-stone-400">{msg.timestamp}</span>
+                      <span className="text-[10px] text-stone-400">
+                        {msg.timestamp}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -454,7 +517,9 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                         <Wrench className="w-3.5 h-3.5" />
                         {t.telemetryToolsHeader}
                       </span>
-                      <span className="text-[10px] text-stone-400 font-mono">{t.toolBusLabel}</span>
+                      <span className="text-[10px] text-stone-400 font-mono">
+                        {t.toolBusLabel}
+                      </span>
                     </div>
 
                     <div className="space-y-1.5">
@@ -475,19 +540,29 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                           {/* Quick summary of returned data */}
                           {tool.name === "getWeather" && tool.result?.data && (
                             <div className="text-[10px] font-sans text-stone-600">
-                              🌧️ Rain Prob: <strong>{tool.result.data.rainProbability}%</strong> • Temp: {tool.result.data.temperature}°C • Forecast: {tool.result.data.forecastNext48h}
+                              🌧️ Rain Prob:{" "}
+                              <strong>
+                                {tool.result.data.rainProbability}%
+                              </strong>{" "}
+                              • Temp: {tool.result.data.temperature}°C •
+                              Forecast: {tool.result.data.forecastNext48h}
                             </div>
                           )}
 
-                          {tool.name === "getSoilMoisture" && tool.result?.data && (
-                            <div className="text-[10px] font-sans text-stone-600">
-                              💧 Zone A Moisture: <strong>42% (Optimal)</strong> • Zone B: <strong>68% (Mulched)</strong>
-                            </div>
-                          )}
+                          {tool.name === "getSoilMoisture" &&
+                            tool.result?.data && (
+                              <div className="text-[10px] font-sans text-stone-600">
+                                💧 Zone A Moisture:{" "}
+                                <strong>42% (Optimal)</strong> • Zone B:{" "}
+                                <strong>68% (Mulched)</strong>
+                              </div>
+                            )}
 
                           {tool.name === "getMarketPrices" && (
                             <div className="text-[10px] font-sans text-stone-600">
-                              📊 GMB Statutory: <strong>$335/t</strong> • Mbare Musika: <strong>$290/t</strong> (Deduct transport ~$25-35)
+                              📊 GMB Statutory: <strong>$335/t</strong> • Mbare
+                              Musika: <strong>$290/t</strong> (Deduct transport
+                              ~$25-35)
                             </div>
                           )}
                         </div>
