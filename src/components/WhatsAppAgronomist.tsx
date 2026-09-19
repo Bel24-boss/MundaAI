@@ -96,7 +96,10 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
       id: Date.now().toString(),
       sender: "farmer",
       text,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
     setMessages((prev) => [...prev, newFarmerMsg]);
@@ -108,14 +111,34 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
       let replyText = "";
       const lower = text.toLowerCase();
 
-      if (lower.includes("irrigate") || lower.includes("kudiridza") || lower.includes("water") || lower.includes("kunisele")) {
-        replyText = "🌧️ Checking weather and soil sensors for Mashonaland West...\n\nRain probability is 78% within the next 36 hours and your Zone B soil moisture is at 68% (Well mulched & optimal).\n\n💡 Next Step: Do NOT irrigate today. Save your pump fuel and prevent fertilizer leaching.";
-      } else if (lower.includes("mbare") || lower.includes("price") || lower.includes("mutengo") || lower.includes("inani") || lower.includes("gmb")) {
-        replyText = "📊 Current Indicative Grain Prices:\n• GMB Aspindale: $335/tonne ($16.75 / 50kg bag)\n• Mbare Musika: ~$290/tonne ($14.50 / 50kg bag)\n\n⚠️ Economic Note: Deduct ~$25-35/tonne for transport from rural depots to calculate your real net profit.";
-      } else if (lower.includes("pfumvudza") || lower.includes("compound") || lower.includes("intwasa") || lower.includes("fertilizer")) {
-        replyText = "🌱 Pfumvudza Fertilizer Rule (Agritex Standard):\nFor each 39m × 16m plot (1,456 basins):\n• Basal: 1 beer bottle cap (~10g) of Compound D per basin (approx 14.5kg per plot).\n• Top Dressing: 1 beer bottle cap of AN at knee height (V6 stage).\n\nEnsure soil is damp before applying AN.";
+      if (
+        lower.includes("irrigate") ||
+        lower.includes("kudiridza") ||
+        lower.includes("water") ||
+        lower.includes("kunisele")
+      ) {
+        replyText =
+          "🌧️ Checking weather and soil sensors for Mashonaland West...\n\nRain probability is 78% within the next 36 hours and your Zone B soil moisture is at 68% (Well mulched & optimal).\n\n💡 Next Step: Do NOT irrigate today. Save your pump fuel and prevent fertilizer leaching.";
+      } else if (
+        lower.includes("mbare") ||
+        lower.includes("price") ||
+        lower.includes("mutengo") ||
+        lower.includes("inani") ||
+        lower.includes("gmb")
+      ) {
+        replyText =
+          "📊 Current Indicative Grain Prices:\n• GMB Aspindale: $335/tonne ($16.75 / 50kg bag)\n• Mbare Musika: ~$290/tonne ($14.50 / 50kg bag)\n\n⚠️ Economic Note: Deduct ~$25-35/tonne for transport from rural depots to calculate your real net profit.";
+      } else if (
+        lower.includes("pfumvudza") ||
+        lower.includes("compound") ||
+        lower.includes("intwasa") ||
+        lower.includes("fertilizer")
+      ) {
+        replyText =
+          "🌱 Pfumvudza Fertilizer Rule (Agritex Standard):\nFor each 39m × 16m plot (1,456 basins):\n• Basal: 1 beer bottle cap (~10g) of Compound D per basin (approx 14.5kg per plot).\n• Top Dressing: 1 beer bottle cap of AN at knee height (V6 stage).\n\nEnsure soil is damp before applying AN.";
       } else {
-        replyText = "Thank you for the update! I am tracking your maize field in Mashonaland West. I can assist you with diagnosing symptoms from photographs, checking regional rainfall probability, calculating Pfumvudza fertilizer, or checking commodity prices.";
+        replyText =
+          "Thank you for the update! I am tracking your maize field in Mashonaland West. I can assist you with diagnosing symptoms from photographs, checking regional rainfall probability, calculating Pfumvudza fertilizer, or checking commodity prices.";
       }
 
       setMessages((prev) => [
@@ -124,7 +147,10 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
           id: (Date.now() + 1).toString(),
           sender: "mufarm",
           text: replyText,
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ]);
       setIsTyping(false);
@@ -137,7 +163,10 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
       id: Date.now().toString(),
       sender: "farmer",
       text: "I checked the whorl and found these ragged holes and caterpillar frass.",
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       image: sample.imageUri,
     };
     setMessages((prev) => [...prev, newMsg]);
@@ -150,7 +179,10 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
           id: (Date.now() + 1).toString(),
           sender: "mufarm",
           text: "🔍 Multimodal Leaf Analysis:\n\nObserved: Window-pane feeding and jagged holes in the central whorl with brownish sawdust-like frass.\n\n⚠️ Suspected: Fall Armyworm (Spodoptera frugiperda) infestation.\n\n✅ Recommended Action:\n1. Small plot: Handpick caterpillars or apply clean wood ash / sand into whorls early morning.\n2. Commercial: If >20% whorls infested, apply Agritex-registered spray (e.g. Emamectin Benzoate) in late afternoon.\n\nEscalation: Agritex Plant Protection Unit notified if regional outbreak continues.",
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ]);
       setIsTyping(false);
@@ -170,7 +202,10 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
             Your Agronomist Is Now on WhatsApp.
           </h2>
           <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-            Chat live, send crop photos, and receive practical farming guidance on WhatsApp at <strong className="text-emerald-400">+1 (646) 589-4168</strong> in English, Shona, and Ndebele.
+            Chat live, send crop photos, and receive practical farming guidance
+            on WhatsApp at{" "}
+            <strong className="text-emerald-400">+1 (555) 187-2696</strong> in
+            English, Shona, and Ndebele.
           </p>
         </div>
 
@@ -178,7 +213,7 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            BOT LINE: +1 (646) 589-4168
+            BOT LINE: +1 (555) 187-2696
           </span>
           <a
             href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
@@ -204,15 +239,23 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
               {/* WhatsApp Header */}
               <div className="bg-[#202c33] px-4 py-3 pt-6 flex items-center justify-between border-b border-[#222d34]">
                 <div className="flex items-center gap-3">
-                  <MundaAiLogo variant="icon" size="sm" iconClassName="w-10 h-10 rounded-xl" />
+                  <MundaAiLogo
+                    variant="icon"
+                    size="sm"
+                    iconClassName="w-10 h-10 rounded-xl"
+                  />
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-sm text-stone-100 font-['Outfit',sans-serif]">mundaai Agronomist</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">OFFICIAL BOT</span>
+                      <span className="font-bold text-sm text-stone-100 font-['Outfit',sans-serif]">
+                        mundaai Agronomist
+                      </span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                        OFFICIAL BOT
+                      </span>
                     </div>
                     <p className="text-[10px] text-emerald-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      +1 (646) 589-4168 • Online
+                      +1 (555) 187-2696 • Online
                     </p>
                   </div>
                 </div>
@@ -226,7 +269,8 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
                 {/* Notice pill inside chat */}
                 <div className="text-center my-1">
                   <span className="inline-block bg-[#182229] text-stone-400 px-3 py-1 rounded-md text-[10px] border border-stone-800">
-                    🔒 Connected to mundaai WhatsApp Bot +1 (646) 589-4168 • Agritex Extension
+                    🔒 Connected to mundaai WhatsApp Bot +1 (555) 187-2696 •
+                    Agritex Extension
                   </span>
                 </div>
 
@@ -255,7 +299,9 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
                           </div>
                         </div>
                       )}
-                      <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                      <p className="whitespace-pre-wrap leading-relaxed">
+                        {msg.text}
+                      </p>
                       <div className="flex items-center justify-end gap-1 text-[9px] text-stone-400 pt-0.5">
                         <span>{msg.time}</span>
                         {msg.sender === "farmer" && (
@@ -272,7 +318,9 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" />
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce delay-100" />
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce delay-200" />
-                      <span className="text-[10px] text-stone-300 ml-1">mundaai bot is answering...</span>
+                      <span className="text-[10px] text-stone-300 ml-1">
+                        mundaai bot is answering...
+                      </span>
                     </div>
                   </div>
                 )}
@@ -310,8 +358,8 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
                     language === "Shona"
                       ? "Nyora meseji ku WhatsApp Bot (+1 646 589-4168)..."
                       : language === "Ndebele"
-                      ? "Bhala umlayezo ku WhatsApp Bot (+1 646 589-4168)..."
-                      : "Type question for WhatsApp Bot (+1 646 589-4168)..."
+                        ? "Bhala umlayezo ku WhatsApp Bot (+1 646 589-4168)..."
+                        : "Type question for WhatsApp Bot (+1 646 589-4168)..."
                   }
                   className="flex-1 bg-[#2a3942] text-stone-100 px-3 py-1.5 rounded-lg text-xs outline-none placeholder:text-stone-400 border border-transparent focus:border-emerald-500"
                 />
@@ -325,7 +373,9 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleSend("Mhoroi mundaai, ndinoda rubatsiro rwekurima")}
+                    onClick={() =>
+                      handleSend("Mhoroi mundaai, ndinoda rubatsiro rwekurima")
+                    }
                     title="Quick Greeting"
                     className="p-2 rounded-full hover:bg-stone-700 text-stone-400 hover:text-emerald-400 transition-colors"
                   >
@@ -354,7 +404,10 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
             </h3>
 
             <p className="text-xs text-stone-300 leading-relaxed">
-              Scan this real QR code with your phone camera or WhatsApp scanner to immediately open a conversation with our verified AI Agronomist on WhatsApp at <strong className="text-emerald-400">+1 (646) 589-4168</strong>.
+              Scan this real QR code with your phone camera or WhatsApp scanner
+              to immediately open a conversation with our verified AI Agronomist
+              on WhatsApp at{" "}
+              <strong className="text-emerald-400">+1 (555) 187-2696</strong>.
             </p>
 
             {/* Real QR Code Card */}
@@ -368,7 +421,7 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
               >
                 <img
                   src="/images/whatsapp-qr.svg"
-                  alt="Real WhatsApp QR Code for +1 (646) 589-4168"
+                  alt="Real WhatsApp QR Code for +1 (555) 187-2696"
                   className="w-28 h-28 object-contain"
                 />
               </a>
@@ -377,7 +430,7 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
                   mundaai WhatsApp Bot
                 </div>
                 <div className="text-sm text-emerald-700 font-mono font-bold">
-                  +1 (646) 589-4168
+                  +1 (555) 187-2696
                 </div>
                 <div className="text-[11px] text-stone-500">
                   Instant agricultural advisory & symptom scanner
@@ -414,7 +467,10 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
               Human Escalation Safety Net
             </div>
             <p className="text-[11px] text-stone-400">
-              If the AI detects high-risk crop pest infestations (e.g. widespread Fall Armyworm outbreak) or severe nutrient depletion, the system automatically suggests connecting directly with the local Ward Agritex extension officer.
+              If the AI detects high-risk crop pest infestations (e.g.
+              widespread Fall Armyworm outbreak) or severe nutrient depletion,
+              the system automatically suggests connecting directly with the
+              local Ward Agritex extension officer.
             </p>
           </div>
         </div>
@@ -422,4 +478,3 @@ export const WhatsAppAgronomist: React.FC<WhatsAppAgronomistProps> = ({
     </section>
   );
 };
-
