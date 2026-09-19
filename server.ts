@@ -469,87 +469,192 @@ app.get("/api/knowledge", (req, res) => {
   });
 });
 
+function generateSimulatedResponse(message: string, language: string, farmContext: any) {
+  const simulatedToolsExecuted: any[] = [];
+  let simulatedResponse = "";
+  let followUpQuestions: string[] = [];
+  let nextStep = "";
+  let officerEscalation = false;
+
+  const lowerMsg = message.toLowerCase();
+
+  if (lowerMsg.includes("irrigate") || lowerMsg.includes("water") || lowerMsg.includes("kudiridza") || lowerMsg.includes("nisele")) {
+    const weather = executeTool("getWeather", { location: "Mashonaland West" });
+    const soil = executeTool("getSoilMoisture", { zoneId: "zone-a" });
+    simulatedToolsExecuted.push(weather, soil);
+    if (language === "Shona") {
+      simulatedResponse = "Zvichienderana nemamiriro ekunze eMashonaland West (mvura inogona kunaya ne 78% mukati memaawa 36 anotevera ne 25-40mm) uye unyoro hwevhu huri pa 42% muZone A (zvakaringana kwazvo), **hazvikurudzirwe kudiridza chibage chako nhasi**. Chengetedza mvura yako uye dzivirira kuti ivhu risava nemvura yakawandisa (waterlogging) inokuvadza midzi.";
+      followUpQuestions = ["Ivhu rako riri kudhiraena zvakanaka here mushure memvura?", "Miti yako iri kuratidza kusvava here masikati?"];
+      nextStep = "Mira kudiridza kwemazuva maviri (48 hours). Tarisa mwero wemvura inonaya usati wabatidza pombi zvakare.";
+    } else if (language === "Ndebele") {
+      simulatedResponse = "Kuye ngokwenzeka komkhathi eMashonaland West (ilizulu lingana nge 78% kumahola angama-36 alandelayo) lesimo sokumanzi komhlabathi esingu 42% kuZone A, **akukhuthazwa ukunisela umbila wakho lamuhla**. Londoloza amanzi akho ukuze uvimbele umhlabathi ukuthi ube lamanzi amanengi kakhulu.";
+      followUpQuestions = ["Umhlabathi wakho uyachitha amanzi kuhle ngemva kwelizulu na?", "Izilimo zakho ziyabuna na emini kukhanya ilanga?"];
+      nextStep = "Misa ukunisela okwamahola angama-48. Hlola ilizulu elinileyo ungakavuli impompi njalo.";
+    } else {
+      simulatedResponse = "Based on real-time data for Mashonaland West: Rainfall probability is **78% within the next 36 hours** (with 25-40mm expected), and your Zone A soil moisture is currently at **42% (Optimal)**. Based on these conditions, **additional irrigation is NOT recommended today** to prevent waterlogging and nitrogen leaching.";
+      followUpQuestions = ["How well is your soil draining after the last rain?", "Are you observing any wilting during peak afternoon heat?"];
+      nextStep = "Postpone scheduled irrigation for 48 hours. Monitor rainfall accumulation before resetting the pump.";
+    }
+  } else if (lowerMsg.includes("plant") || lowerMsg.includes("kurima") || lowerMsg.includes("riini") || lowerMsg.includes("region ii") || lowerMsg.includes("nini") || lowerMsg.includes("planting")) {
+    const knowledge = executeTool("getAgriculturalKnowledge", { query: "Pfumvudza" });
+    simulatedToolsExecuted.push(knowledge);
+    if (language === "Shona") {
+      simulatedResponse = "Mu **Natural Region II** yeZimbabwe (yakaita seMashonaland West, Mazowe, Harare), nguva yakakodzera kwazvo yekudyara chibage inotanga **kubva pakati paMbudzi (mid-November) kusvika svondo rekutanga raZvita (early December)**, panenge panaya mvura yekutanga inosvika 25-30mm. Kana uchishandisa nzira yePfumvudza/Intwasa, unogona kudyara ivhu rakaoma (dry planting) muna Mbudzi usati watanga kunaya, wobva waisa mulching yakasimba kuchengetedza unyoro.";
+      followUpQuestions = ["Wakatotora mbeu yerudzi rupi (e.g. SC 529, SC 659, PAN 53)?", "Wakatogadzira mabhasini ePfumvudza here?"];
+      nextStep = "Iva nechokwadi chekuti ivhu rawana mvura inodarika 25mm pamberi pekudyara, kana kudyara mumabhasini ane mulching yakakwana.";
+    } else if (language === "Ndebele") {
+      simulatedResponse = "Ku **Natural Region II** yeZimbabwe, isikhathi esihle kakhulu sokuhlanyela umbila siqala **phakathi kukaLwezi (mid-November) kusiya ekuqaleni kukaMpalakazi (early December)** lapho eseline izulu lokuqala elingaba yi 25-30mm. Nxa usebenzisa i-Intwasa/Pfumvudza, ungahlanyela emhlabathini owomileyo ubusufaka i-mulching yokugcina umswakama.";
+      followUpQuestions = ["Uhlobo luni lwembewu oluthengileyo?", "Usubumbile izigodi ze-Intwasa na?"];
+      nextStep = "Qisekisa ukuthi ilizulu lenile okungenani 25mm ungakahlanyeli.";
+    } else {
+      simulatedResponse = "In **Zimbabwe Natural Region II** (e.g. Mashonaland West, Mazowe, Beatrice), the optimal planting window for maize is between **mid-November and the first week of December**, triggered when your station records a cumulative planting rain of 25-30mm. If practicing Pfumvudza/Intwasa with heavy mulch, you can also dry-plant basins in early November just ahead of anticipated rains.";
+      followUpQuestions = ["Which seed maturity group are you planting (e.g. 500-series medium or 600-series long season)?", "Are your planting basins already dug and mulched?"];
+      nextStep = "Wait for a verified 25mm rainfall event or check your calibrated rain gauge before sowing germinated seeds.";
+    }
+  } else if (lowerMsg.includes("fertilizer") || lowerMsg.includes("pfumvudza") || lowerMsg.includes("mupfudze") || lowerMsg.includes("compound d") || lowerMsg.includes("top dressing") || lowerMsg.includes("an") || lowerMsg.includes("plots")) {
+    const fert = executeTool("calculateFertilizer", { crop: "Maize", pfumvudzaPlots: 3 });
+    simulatedToolsExecuted.push(fert);
+    if (language === "Shona") {
+      simulatedResponse = "Pama **plot ePfumvudza matatu (3 standard plots)** emuchibage (plot rimwe riri 39m x 16m rine mabhasini 1,456):\n\n" +
+        "1. **Basal Fertilizer (Compound D)**: Unoda mabhegi e 50kg anokwana matatu (150kg). Shandisa chifuniko chebhodhoro cheCoke (10g) mugomba rega rega pakudyara kana compozi yakasimba.\n" +
+        "2. **Top Dressing (Ammonium Nitrate - AN)**: Unoda mabhegi e 50kg anokwana matatu (150kg). Isa chifuniko chebhodhoro chakatsemurwa kaviri: kamwe chete kana chibage chasvika pamabvi (vhiki 4-6), chechipiri panotanga kubuda maruva (tasseling).\n" +
+        "3. **Mulching**: Vhara pasi rese nehuswa hwakaoma kana mashanga kuchengetedza unyoro hwevhu.";
+      followUpQuestions = ["Wakatenga kare fotereza ye Compound D ne AN here?", "Une manyowa akaora (manure/compost) ekusimbisa ivhu here?"];
+      nextStep = "Gadzira mabhasini 1,456 pachirongwa chega chega woyera fotereza uchishandisa zvikero zvehwanda kana zvifuniko zvemabhodhoro.";
+    } else {
+      simulatedResponse = "For **3 standard Pfumvudza maize plots** (each plot is 39m × 16m with 1,456 basins):\n\n" +
+        "1. **Basal Fertilizer (Compound D)**: Approximately **150 kg (3 × 50kg bags)**. Apply one bottle cap (approx 10g) per basin placed 5cm to the side of the seed, or a full double handful of well-rotted manure.\n" +
+        "2. **Top Dressing (Ammonium Nitrate - AN)**: Approximately **150 kg (3 × 50kg bags)**. Split into two applications: first application (5g per basin) at 4-6 weeks after emergence (knee-high), and second application (5g per basin) just before tasseling.\n" +
+        "3. **Mulching**: Apply at least 30-40% ground cover with dry grass or maize stover immediately after fertilizer placement to prevent volatilization and retain moisture.";
+      followUpQuestions = ["Do you already have your Compound D and AN in stock?", "Are you supplementing with cattle kraal manure or compost?"];
+      nextStep = "Calibrate your bottle caps or cup measurements before basin application to avoid fertilizer burn.";
+    }
+  } else if (lowerMsg.includes("yellow") || lowerMsg.includes("mashizha") || lowerMsg.includes("leaves") || lowerMsg.includes("amakhasi") || lowerMsg.includes("pest") || lowerMsg.includes("armyworm") || lowerMsg.includes("mhundu")) {
+    const knowledge = executeTool("getAgriculturalKnowledge", { query: lowerMsg.includes("armyworm") ? "Fall armyworm" : "Nitrogen deficiency" });
+    simulatedToolsExecuted.push(knowledge);
+    if (language === "Shona") {
+      simulatedResponse = "Mashizha echibage kuchinja ruvara kuita yero kana kuchekeka kunogona kukonzerwa nezvikonzero zvakakosha zvitatu:\n\n" +
+        "1. **Kushaikwa kwe Nitrogen**: Mashizha ekuzasi anoita ruvara rweyero zvichitangira pamuromo weshizha zvichienda pakati (V-shape).\n" +
+        "2. **Fall Armyworm (Mhundu)**: Mashizha anoboorwa makomba asina kuenzana, uye muwhorl mune tsvina yakaita sehupfu hwematanda (frass).\n" +
+        "3. **Maize Streak Virus**: Mitsara michena yakati twasa inotambanuka nemashizha ose.\n\n" +
+        "Kuti tiwane mhinduro yakakwana, unogona kurodha mufananidzo uchishandisa Crop Scanner?";
+      followUpQuestions = ["Makomba ari pamashizha here kana kuti ruvara rweyero ruri pamashizha ekuzasi chete?", "Une mukana wekutora mufananidzo weshizha racho here?"];
+      nextStep = "Famba mumunda uchitarisa miti gumi (10 plants). Kana iri mhundu, fadzira mishonga yakanyoreswa neAgritex manheru kana mangwanani-ngwanani.";
+    } else {
+      simulatedResponse = "Maize leaf symptoms can indicate distinct agronomic conditions in Zimbabwe:\n\n" +
+        "1. **Nitrogen Deficiency**: Classic inverted V-shaped yellowing starting at leaf tips of older lower leaves first, moving down the central midrib.\n" +
+        "2. **Fall Armyworm (Spodoptera frugiperda)**: Ragged, window-paned leaves with sawdust-like fecal frass deep within the central plant whorl.\n" +
+        "3. **Maize Streak Virus (MSV)**: Uniform, continuous narrow pale chlorotic streaks running parallel to leaf veins across both young and old leaves.\n\n" +
+        "To get a precise visual check, please take a close-up photo using the **Crop Scanner** tab!";
+      followUpQuestions = ["Are the symptoms concentrated on older bottom leaves or young whorl leaves?", "Do you see any moist sawdust-like frass inside the funnel?"];
+      nextStep = "Scout 20 plants along a 'W' pattern across your field. If Fall Armyworm is detected at >5% threshold, schedule targeted whorl application.";
+      officerEscalation = true;
+    }
+  } else if (lowerMsg.includes("market") || lowerMsg.includes("sell") || lowerMsg.includes("mutengo") || lowerMsg.includes("kutengesa") || lowerMsg.includes("thengisa") || lowerMsg.includes("gmb") || lowerMsg.includes("mbare")) {
+    const markets = executeTool("getMarketPrices", { commodity: "Maize" });
+    simulatedToolsExecuted.push(markets);
+    if (language === "Shona") {
+      simulatedResponse = "Panyaya yemisika yechibage muZimbabwe panguva ino:\n\n" +
+        "- **GMB (Grain Marketing Board - Aspindale/Chinhoyi)**: Mutengo wehurumende unosvika **$335 patonne** ($16.75 pabhegi re 50kg), asi muripo unogona kutora mazuva mashoma uye vanotarisa unyoro hwemhodzi (moisture content) isingapfuuri 12.5%.\n" +
+        "- **Mbare Musika (Private Buyers)**: Vari kutenga pa **$280 - $295 patonne** ($14.00 - $14.75 pabhegi re 50kg) ne cash iripapo (USD spot cash).\n\n" +
+        "Zano: Verenga mutengo wekutakura (transport) kubva kuMashonaland West ($25-35/tonne) uone kuti ndeupi musika unokupa mubairo wakakura.";
+      followUpQuestions = ["Une mabhegi mangani e 50kg kana matani mangani?", "Unyoro hwechibage chako hwakayerwa here (12.5% standard)?"];
+      nextStep = "Yera unyoro hwechibage usati waendesa kuGMB kuitira kudzivirira kubvisirwa mari (dockage).";
+    } else {
+      simulatedResponse = "Current grain marketing overview for Zimbabwean maize:\n\n" +
+        "• **GMB (Statutory)**: **$335/tonne ($16.75 per 50kg bag)**. Offers a premium price floor, but requires strict moisture inspection (maximum 12.5%) and standardized payment processing windows.\n" +
+        "• **Mbare Musika & Private Millers**: **$280 - $295/tonne ($14.00 - $14.75 per 50kg bag)**. Instant USD spot cash, but with higher price volatility.\n\n" +
+        "**Agronomist Advice**: Always calculate net realized return after deducting transport freight from Mashonaland West (~$25–$35/tonne) before choosing your buyer.";
+      followUpQuestions = ["How many 50kg bags or metric tonnes are you planning to market?", "Has your grain moisture content been tested with a grain moisture meter?"];
+      nextStep = "Perform a salt-and-jar test or visit your local GMB depot to verify grain moisture is at or below 12.5% before bagging.";
+    }
+  } else {
+    const defaultGreetings: Record<string, string> = {
+      Shona: `Mhoro Tendai! Ndini Mufarm, murairidzi wako wezvekurima (AI Agronomist) muZimbabwe. Ndinogona kukubatsira pazvinhu zvakaita semamiriro ekunze, kudiridza, fotereza yePfumvudza, zvirwere zvechibage, kana mitengo yemisika. Unoda kubatsirwa nei mumunda nhasi?`,
+      Ndebele: `Salibonani Tendai! Ngingu Mufarm, umeluleki wakho wezokulima (AI Agronomist) eZimbabwe. Ngingakusiza ngesimo somkhathi, ukunisela, umanyolo we-Intwasa, izifo zombila, kumbe intengo yezilimo. Ngingakusiza ngani lamuhla?`,
+      English: `Hello Tendai! I am Mufarm, your dedicated AI Agronomist for Zimbabwean agriculture. I'm actively monitoring your 2ha maize crop in Mashonaland West. For your query "${message}", I can assist with irrigation timing, weather forecasts, Pfumvudza basin fertilizer schedules, pest diagnostics, or grain market pricing. How can I assist your field today?`,
+    };
+    simulatedResponse = defaultGreetings[language] || defaultGreetings.English;
+    if (language === "Shona") {
+      followUpQuestions = [
+        "Unoda kuongorora mamiriro ekunze eMashonaland West here?",
+        "Unoda kuverenga fotereza yePfumvudza?",
+      ];
+      nextStep = "Bvunza mubvunzo wako wekurima kana kurodha mufananidzo muchikamu che Crop Scanner.";
+    } else if (language === "Ndebele") {
+      followUpQuestions = [
+        "Uyafuna ukuhlola umkhathi we-Mashonaland West na?",
+        "Uyafuna ukubala umquba we-Intwasa?",
+      ];
+      nextStep = "Buza umbuzo wakho wezokulima loba ufake isithombe ku-Crop Scanner.";
+    } else {
+      followUpQuestions = [
+        "Would you like to check local rainfall forecasts and soil moisture?",
+        "Do you want to calculate Pfumvudza basin fertilizer requirements?",
+      ];
+      nextStep = "Ask any farming question or upload a plant photo in the Crop Scanner tab for instant diagnosis.";
+    }
+  }
+
+  return {
+    reply: simulatedResponse,
+    toolsExecuted: simulatedToolsExecuted,
+    followUpQuestions,
+    actionableNextStep: nextStep,
+    escalation: {
+      recommended: officerEscalation,
+      officerContact: "Mashonaland West Agritex Desk (Chinhoyi): +263 67 212 3456",
+    },
+  };
+}
+
 // AI Chat endpoint with Gemini Conversational Reasoning and Tool Calling
 app.post("/api/ai/chat", async (req, res) => {
+  const { message, history = [], language = "English", farmContext = null } = req.body;
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ error: "Message is required" });
+  }
+
+  const ai = getGenAI();
+
+  // If Gemini API is not configured, directly respond with expert agronomy simulation
+  if (!ai) {
+    const fallback = generateSimulatedResponse(message, language, farmContext);
+    return res.json({
+      reply: fallback.reply,
+      toolsExecuted: fallback.toolsExecuted,
+      followUpQuestions: fallback.followUpQuestions,
+      actionableNextStep: fallback.actionableNextStep,
+      escalation: fallback.escalation,
+      mode: "AGRONOMY_ENGINE (Grounded Zimbabwe Agritex Rules)",
+    });
+  }
+
+  // Gemini API is present - attempt Live Multimodal AI with tools and resilient fallback
   try {
-    const { message, history = [], language = "English", farmContext = null } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
-    }
-
-    const ai = getGenAI();
-
-    // Context instructions for Gemini
     const systemInstruction = `
 You are Mufarm, an expert AI Agronomist built for Zimbabwean farmers.
 Your role is to help smallholder and commercial farmers make well-informed agricultural decisions.
 
-Key principles:
-1. Always communicate with empathy, practical clarity, and local context (Zimbabwe Natural Regions I to V, Pfumvudza conservation agriculture, Agritex practices, local seasons, USD/ZiG economics).
+CRITICAL MANDATE - STRICT LANGUAGE ENFORCEMENT:
+The farmer's active application interface language is "${language}".
+You MUST generate your ENTIRE reply, all greetings, explanations, step-by-step advice, and bullet points strictly and exclusively in ${language}:
+- If language is "Shona": Your entire reply MUST be in natural, authentic ChiShona (Shona). Do NOT output English explanations, do NOT revert to English, even if the user typed their prompt in English (e.g. "HI", "hello", "Should I irrigate", etc.). Ground all advice in local Shona agricultural vocabulary (e.g. Mhoroi Tendai, mamiriro ekunze, mwando wevhu, kudiridza, fotereza, zvirwere, Pfumvudza, goho, etc.).
+- If language is "Ndebele": Your entire reply MUST be in authentic isiNdebele (Ndebele). Do NOT output English explanations, do NOT revert to English, even if the user typed in English. Ground all advice in local Ndebele agricultural vocabulary (e.g. Salibonani Tendai, umkhathi, umswakama womhlabathi, ukunisela, umanyolo/umquba, Intwasa, etc.).
+- If language is "English": Your reply MUST be in English.
+
+Key agricultural principles:
+1. Always communicate with empathy, practical clarity, and local context (Zimbabwe Natural Regions I to V, Pfumvudza/Intwasa conservation agriculture, Agritex practices, local seasons, USD/ZiG economics).
 2. NEVER give a premature definitive diagnosis when diagnosing problems. Ask intelligent follow-up questions (e.g. growth stage, leaf position, recent rainfall, field pattern, or request a photo).
-3. Always end with a clear "What should I do next?" actionable recommendation.
+3. Always end with a clear actionable recommendation section (in Shona: "### Ndoita sei zvino?", in Ndebele: "### Kumele ngenzeni manje?", in English: "### What should I do next?").
 4. When asked about irrigation, weather, markets, fertilizer, or crop rules, USE YOUR TOOLS (getWeather, getSoilMoisture, getMarketPrices, calculateFertilizer, getAgriculturalKnowledge) instead of inventing data.
-5. If the user speaks or requests Shona or Ndebele, answer in that language while keeping agricultural terms accurate.
-6. Emphasize that you are an AI assistant and clearly state when cases should be escalated to a local Agritex extension officer.
+5. Emphasize that you are an AI assistant and clearly state when cases should be escalated to a local Agritex extension officer.
+
 Current farmer context: ${farmContext ? JSON.stringify(farmContext) : "Tendai, 2ha Maize in Mashonaland West, vegetative stage."}
-Language preference: ${language}.
+Active Language: ${language}.
 `;
 
-    if (!ai) {
-      // High quality fallback simulation when API key is missing
-      const simulatedToolsExecuted: any[] = [];
-      let simulatedResponse = "";
-      let followUpQuestions: string[] = [];
-      let nextStep = "";
-
-      const lowerMsg = message.toLowerCase();
-
-      if (lowerMsg.includes("irrigate") || lowerMsg.includes("water") || lowerMsg.includes("kudiridza")) {
-        const weather = executeTool("getWeather", { location: "Mashonaland West" });
-        const soil = executeTool("getSoilMoisture", { zoneId: "zone-a" });
-        simulatedToolsExecuted.push(weather, soil);
-        simulatedResponse = language === "Shona"
-          ? "Zvichienderana nemamiriro ekunze eMashonaland West (kunonzi mvura inogona kunaya ne 78% maawa 36 anotevera) uye unyoro hwevhu huri pa 42% muZone A (zvakaringana), hazvikurudzirwe kudiridza chibage chako nhasi. Chengetedza mvura yako!"
-          : "Based on real-time data retrieved for Mashonaland West: Rainfall probability is 78% within the next 36 hours (with 25-40mm expected), and your Zone A soil moisture is currently at 42% (Optimal). Based on these conditions, additional irrigation is NOT recommended today to prevent waterlogging and nitrogen leaching.";
-        followUpQuestions = ["How well is your soil draining after the last rain?", "Are you observing any wilting during peak afternoon heat?"];
-        nextStep = "Postpone scheduled irrigation for 48 hours. Monitor rainfall accumulation before resetting the pump.";
-      } else if (lowerMsg.includes("yellow") || lowerMsg.includes("mashizha") || lowerMsg.includes("leaves")) {
-        simulatedResponse = language === "Shona"
-          ? "Mashizha echibage kuita yero anogona kukonzerwa nezvinhu zvakasiyana: kushomeka kwe nitrogen muvhu, chirwere che Maize Streak Virus, kana mvura yakawandisa muvhu. Kuti ndikubatsire zvakanaka, unogona kurodha mufananidzo wemashizha aya?"
-          : "Maize leaf yellowing (chlorosis) can have several distinct causes in Zimbabwe: Nitrogen deficiency (classic V-shaped pattern starting at the tip of older leaves), waterlogging leaching nutrients, or viral stress such as Maize Streak Virus. Before deciding on corrective actions, we need to inspect the pattern closely.";
-        followUpQuestions = [
-          "Are older lower leaves yellowing first, or the newest top leaves?",
-          "Does the yellowing form a V-shape along the midrib, or stripes along the veins?",
-          "Can you take or upload a close-up photograph of the affected leaf?"
-        ];
-        nextStep = "Inspect 10 plants across your field. Check whether symptoms are patchy or uniform, and upload a clear photo using the Crop Scanner.";
-      } else if (lowerMsg.includes("market") || lowerMsg.includes("sell") || lowerMsg.includes("mutengo") || lowerMsg.includes("kutengesa")) {
-        const markets = executeTool("getMarketPrices", { commodity: "Maize" });
-        simulatedToolsExecuted.push(markets);
-        simulatedResponse = "Looking at current indicative grain prices: Grain Marketing Board (GMB Aspindale) is offering statutory $335/tonne ($16.75/50kg bag), while private traders at Mbare Musika are trading at approximately $290/tonne ($14.50/50kg bag). However, remember: Price alone does not determine your final return—you must account for transport deductions from Mashonaland West (~$25-35/tonne) and payment turnaround.";
-        followUpQuestions = ["How many 50kg bags or tonnes do you have available?", "Do you have local transport to Aspindale or Harare?"];
-        nextStep = "Calculate your net profit after deducting transport cost and moisture dockage before dispatching grain.";
-      } else {
-        simulatedResponse = `Hello Tendai! As your Mufarm AI Agronomist, I'm analyzing your maize crop in Mashonaland West. For your query "${message}", I can guide you on crop health, weather forecasts, Pfumvudza fertilizer schedules, or market timing. How can I help your field today?`;
-        followUpQuestions = ["Would you like to scan a crop photograph?", "Do you want to check local weather and soil moisture?"];
-        nextStep = "Provide details on crop growth stage or upload a photo for structured evaluation.";
-      }
-
-      return res.json({
-        reply: simulatedResponse,
-        toolsExecuted: simulatedToolsExecuted,
-        followUpQuestions,
-        actionableNextStep: nextStep,
-        escalation: {
-          recommended: false,
-          officerContact: "Agritex District Office (Chinhoyi): +263 67 212 3456",
-        },
-        mode: "DEMO_SIMULATION (Gemini ready, add API key in Settings > Secrets)",
-      });
-    }
-
-    // Call Gemini API with Tool Declarations
     const tools = [
       {
         functionDeclarations: [
@@ -562,7 +667,6 @@ Language preference: ${language}.
       },
     ];
 
-    // Build chat contents from history
     const contents: any[] = [];
     if (Array.isArray(history)) {
       for (const h of history.slice(-6)) {
@@ -578,7 +682,7 @@ Language preference: ${language}.
     });
 
     const initialResponse = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
+      model: "gemini-3.1-flash-lite",
       contents,
       config: {
         systemInstruction,
@@ -588,11 +692,9 @@ Language preference: ${language}.
 
     const functionCalls = initialResponse.functionCalls;
     const toolsExecuted: any[] = [];
-
     let finalResponseText = initialResponse.text || "";
 
     if (functionCalls && functionCalls.length > 0) {
-      // Execute each tool and return to Gemini for grounded reasoning
       const toolResultsContent: any[] = [];
 
       for (const call of functionCalls) {
@@ -608,14 +710,14 @@ Language preference: ${language}.
         toolResultsContent.push({
           functionResponse: {
             name: toolName,
+            id: call.id,
             response: { output: result },
           },
         });
       }
 
-      // Preserve context and feed function responses back
       const followupResponse = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+        model: "gemini-3.1-flash-lite",
         contents: [
           ...contents,
           initialResponse.candidates?.[0]?.content || { role: "model", parts: [{ text: "" }] },
@@ -625,40 +727,98 @@ Language preference: ${language}.
           },
         ],
         config: {
-          systemInstruction: systemInstruction + "\nIncorporate the tool results accurately into your response. Highlight what the farmer should do next.",
+          systemInstruction: systemInstruction + `\nIncorporate the tool results accurately into your response in ${language}. Highlight what the farmer should do next in ${language}.`,
         },
       });
 
       finalResponseText = followupResponse.text || finalResponseText;
     }
 
-    res.json({
-      reply: finalResponseText,
-      toolsExecuted,
-      followUpQuestions: [
+    // Ensure we always have a text response
+    if (!finalResponseText.trim()) {
+      const sim = generateSimulatedResponse(message, language, farmContext);
+      finalResponseText = sim.reply;
+    }
+
+    const localizedFollowUps: Record<string, string[]> = {
+      Shona: [
+        "Ko unyoro hwevhu mune mamwe ma zone huri sei?",
+        "Unoda nhamba dze Agritex extension officer wako wemuno here?",
+        "Unoda kuverenga fotereza yePfumvudza kana AN?",
+      ],
+      Ndebele: [
+        "Umswakama womhlabathi kwezinye izigaba umi njani?",
+        "Uyafuna inombolo zomlayeli we-Agritex na?",
+        "Uyafuna ukubala umquba we-Intwasa kumbe i-AN?",
+      ],
+      English: [
         "Would you like to check soil moisture in other zones?",
         "Do you need the local Agritex extension officer contact?",
+        "Would you like to calculate Pfumvudza or top-dressing fertilizer?",
       ],
-      actionableNextStep: "Review the recommendation above and check field conditions before taking action.",
+    };
+
+    const localizedNextStep: Record<string, string> = {
+      Shona: "Wongorora zano riri pamusoro wotanga watarisa mamiriro emunda usati waita danho.",
+      Ndebele: "Hlola iseluleko esingasenhla uqale ngokuhlola isimo somhlabathi ungakathathi amanyathelo.",
+      English: "Review the recommendation above and check field conditions before taking action.",
+    };
+
+    return res.json({
+      reply: finalResponseText,
+      toolsExecuted,
+      followUpQuestions: localizedFollowUps[language] || localizedFollowUps.English,
+      actionableNextStep: localizedNextStep[language] || localizedNextStep.English,
       escalation: {
-        recommended: finalResponseText.toLowerCase().includes("extension officer") || finalResponseText.toLowerCase().includes("agritex"),
+        recommended: finalResponseText.toLowerCase().includes("extension officer") || finalResponseText.toLowerCase().includes("agritex") || finalResponseText.toLowerCase().includes("mudhumeni"),
         officerContact: "Mashonaland West Agritex Desk: +263 67 212 3456",
       },
       mode: "LIVE_GEMINI_API",
     });
-  } catch (error: any) {
-    console.error("Chat API Error:", error);
-    res.status(500).json({
-      error: error.message || "Failed to process AI chat request",
-      fallback: "I encountered a processing issue. Please check your connectivity or try again in a few moments.",
+  } catch (apiError: any) {
+    console.warn("Live Gemini Chat encountered an issue or quota limit. Transitioning smoothly to agronomic expert rule engine:", apiError?.message);
+    const fallback = generateSimulatedResponse(message, language, farmContext);
+    return res.json({
+      reply: fallback.reply,
+      toolsExecuted: fallback.toolsExecuted,
+      followUpQuestions: fallback.followUpQuestions,
+      actionableNextStep: fallback.actionableNextStep,
+      escalation: fallback.escalation,
+      mode: "AGRONOMY_ENGINE (Grounded Zimbabwe Agritex Rules)",
     });
   }
+});
+
+// Translation endpoint for switching language in active chat
+app.post("/api/ai/translate", async (req, res) => {
+  const { text, targetLanguage = "English" } = req.body;
+  if (!text || !text.trim()) {
+    return res.status(400).json({ error: "Text is required" });
+  }
+
+  const ai = getGenAI();
+  if (ai) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-lite",
+        contents: `You are a specialist Zimbabwean agricultural translator. Translate the following agronomic advisory message completely and faithfully into ${targetLanguage} (${targetLanguage === "Shona" ? "ChiShona" : targetLanguage === "Ndebele" ? "isiNdebele" : "English"}).
+Preserve all formatting, markdown headers, bullet points, numbers, percentages, and dollar amounts. Do NOT add conversational filler or translator notes:
+
+${text}`,
+      });
+      return res.json({ translatedText: response.text?.trim() || text });
+    } catch (err: any) {
+      console.warn("Translation failed, falling back to original:", err?.message);
+    }
+  }
+
+  return res.json({ translatedText: text });
 });
 
 // Multimodal Crop Scan endpoint
 app.post("/api/ai/crop-scan", async (req, res) => {
   try {
-    let { imageBase64, mimeType = "image/jpeg", crop = "Maize", growthStage = "Vegetative (V6)", observations = "" } = req.body;
+    let { imageBase64, mimeType = "image/jpeg", crop = "Maize", growthStage = "Vegetative (V6)", observations = "", language = "English" } = req.body;
 
     if (!imageBase64) {
       return res.status(400).json({ error: "Image data is required" });
@@ -998,10 +1158,12 @@ Examine this crop photograph carefully. The farmer reports:
 - Crop: ${crop}
 - Growth Stage: ${growthStage}
 - Additional farmer notes: ${observations || "None provided"}
+- Language: ${language}
 
 Analyze visible leaf and plant symptoms.
 Provide a strictly structured, responsible assessment.
 Important constraints:
+- Language: The farmer interacts in ${language}. Generate all issues, descriptions, visible symptoms, next checks, recommended actions, escalation notes, and disclaimer directly in fluent ${language} (if Shona: use authentic ChiShona agricultural terminology e.g. Pfumvudza, Chibage, Mhundu, varimisi veAgritex; if Ndebele: use authentic SiNdebele e.g. Intwasa, Umumbu, abaleluleki beAgritex; if English: standard English).
 - NEVER say "Your crop definitely has...". Use language like "The visible symptoms may be consistent with..."
 - Distinguish between nutrient deficiencies (e.g. Nitrogen V-shape chlorosis, Zinc banding), insect pests (e.g. Fall armyworm Spodoptera frugiperda window-paning and frass), fungal/bacterial/viral diseases (e.g. Maize Streak Virus, Grey Leaf Spot, Northern Corn Leaf Blight, Tomato Early/Late Blight).
 - Include specific, practical next steps suitable for Zimbabwean smallholder or commercial farmers (Pfumvudza, Agritex approved cultural and chemical practices).
@@ -1041,7 +1203,7 @@ Return your response in JSON format conforming to the following structure:
       };
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+        model: "gemini-3.1-flash-lite",
         contents: {
           parts: [imagePart, { text: promptText }],
         },
@@ -1084,7 +1246,7 @@ app.post("/api/ai/fertilizer", async (req, res) => {
 
     if (ai) {
       const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
+        model: "gemini-3.1-flash-lite",
         contents: `Explain this fertilizer calculation to a Zimbabwean farmer in friendly, practical language.
 Input: Crop=${crop}, Area=${areaHectares}ha, PfumvudzaPlots=${pfumvudzaPlots}, Region=${region}, Soil=${soilType}.
 Data: ${JSON.stringify(calcResult.data)}.

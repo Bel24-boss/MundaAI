@@ -36,7 +36,7 @@ export interface ChatMessage {
 
 export interface CropIssue {
   name: string;
-  likelihood: "High" | "Medium" | "Low";
+  likelihood: "High" | "Medium" | "Low" | string;
   scientificName?: string;
   summary: string;
 }
@@ -44,7 +44,7 @@ export interface CropIssue {
 export interface CropScanAssessment {
   crop: string;
   possibleIssues: CropIssue[];
-  confidence: "High" | "Medium" | "Low";
+  confidence: "High" | "Medium" | "Low" | string;
   visibleSymptoms: string[];
   whatToCheckNext: string[];
   recommendedAction: string[];

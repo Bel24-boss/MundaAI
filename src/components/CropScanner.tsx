@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   Camera,
   Upload,
@@ -16,6 +16,7 @@ import {
 import { CropScanAssessment, Language, FarmerProfile } from "../types";
 import { CROP_SAMPLES, CropSample } from "../data/cropSamples";
 import { TRANSLATIONS } from "../data/translations";
+import { getLocalizedAssessment } from "../utils/cropTranslations";
 
 interface CropScannerProps {
   language: Language;
@@ -42,6 +43,12 @@ export const CropScanner: React.FC<CropScannerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const effectiveCrop = selectedCrop === "Custom" ? (customCropName.trim() || "Custom Crop") : selectedCrop;
+
+  // Dynamically translate the active assessment when the user toggles language
+  const displayAssessment = useMemo(() => {
+    if (!assessment) return null;
+    return getLocalizedAssessment(assessment, language);
+  }, [assessment, language]);
 
   const handleSelectSample = (sample: CropSample) => {
     setActiveSampleId(sample.id);
@@ -81,6 +88,7 @@ export const CropScanner: React.FC<CropScannerProps> = ({
           crop: effectiveCrop,
           growthStage: selectedStage,
           observations: farmerObservations,
+          language: language,
         }),
       });
 
@@ -105,10 +113,10 @@ export const CropScanner: React.FC<CropScannerProps> = ({
             <span>Multimodal Agronomic Vision</span>
           </div>
           <h2 className="text-2xl font-extrabold text-stone-900 mt-2 font-['Outfit',sans-serif]">
-            Scan Your Crop
+            {t.cropScannerTitle}
           </h2>
           <p className="text-xs sm:text-sm text-stone-600">
-            Upload or capture a leaf, fruit, or whorl photograph to evaluate visible symptoms, pest pressures, and nutrient stresses.
+            {t.cropScannerSub}
           </p>
         </div>
 
@@ -118,7 +126,11 @@ export const CropScanner: React.FC<CropScannerProps> = ({
             Responsible AI Protocol
           </div>
           <p className="text-[11px] text-amber-800 mt-0.5">
-            mundaai communicates symptoms as likelihoods, never definitive diagnoses. Escalation to Agritex is provided for severe cases.
+            {language === "Shona"
+              ? "Mufarm inopa zviratidzo semukana, kwete chisarudzo chekupedzisira chemurabhoritari. Kukwidza kuAgritex kunopiwa panzvimbo dzakaoma."
+              : language === "Ndebele"
+              ? "I-Mufarm ibika izimpawu njengamathuba, hatshi isinqumo sokugcina. Ukubikela i-Agritex kuyatholakala ezimweni ezibucayi."
+              : "Mufarm communicates symptoms as likelihoods, never definitive diagnoses. Escalation to Agritex is provided for severe cases."}
           </p>
         </div>
       </div>
@@ -127,9 +139,15 @@ export const CropScanner: React.FC<CropScannerProps> = ({
       <div className="bg-stone-50 rounded-2xl p-5 border border-stone-200 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <span className="text-xs font-bold uppercase tracking-wider text-stone-700">
-            Real Field Test Samples (Click to load):
+            {t.samplesTitle}
           </span>
-          <span className="text-xs text-stone-500 font-medium">Authentic photographs of Zimbabwean crop pathology</span>
+          <span className="text-xs text-stone-500 font-medium">
+            {language === "Shona"
+              ? "Mifananidzo yechokwadi yezvirwere nezvipfukuto muZimbabwe"
+              : language === "Ndebele"
+              ? "Izithombe zangempela zezifo lezinambuzane eZimbabwe"
+              : "Authentic photographs of Zimbabwean crop pathology"}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -139,7 +157,7 @@ export const CropScanner: React.FC<CropScannerProps> = ({
               <button
                 key={sample.id}
                 onClick={() => handleSelectSample(sample)}
-                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between group ${
+                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between group cursor-pointer ${
                   isSelected
                     ? "border-emerald-600 bg-white ring-2 ring-emerald-500/20 shadow-md"
                     : "border-stone-200 bg-white hover:border-stone-400"
@@ -181,7 +199,7 @@ export const CropScanner: React.FC<CropScannerProps> = ({
           <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-sm text-stone-900 font-['Outfit',sans-serif]">
-                Crop Photograph
+                {t.uploadTitle}
               </h3>
               {previewImage && (
                 <button
@@ -190,7 +208,7 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                     setActiveSampleId("");
                     setAssessment(null);
                   }}
-                  className="text-xs text-red-600 hover:text-red-700 font-semibold"
+                  className="text-xs text-red-600 hover:text-red-700 font-semibold cursor-pointer"
                 >
                   Clear Photo
                 </button>
@@ -219,10 +237,10 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                         e.stopPropagation();
                         fileInputRef.current?.click();
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-white text-stone-900 font-bold text-xs flex items-center gap-1.5 shadow"
+                      className="px-3 py-1.5 rounded-lg bg-white text-stone-900 font-bold text-xs flex items-center gap-1.5 shadow cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5" />
-                      Change Photo
+                      {t.takePhoto}
                     </button>
                   </div>
                 </>
@@ -233,10 +251,10 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                   </div>
                   <div>
                     <p className="text-sm font-bold text-stone-800">
-                      Upload or Take Crop Photograph
+                      {t.uploadTitle}
                     </p>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      Click to browse or drop an image of affected leaves, fruit, or whorl
+                      {t.dragDrop}
                     </p>
                   </div>
                   <button
@@ -245,10 +263,10 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
                   >
                     <Upload className="w-3.5 h-3.5" />
-                    Browse Photo
+                    {t.uploadPhoto}
                   </button>
                 </div>
               )}
@@ -266,26 +284,26 @@ export const CropScanner: React.FC<CropScannerProps> = ({
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-semibold text-stone-700 block mb-1">Crop Type</label>
+                  <label className="font-semibold text-stone-700 block mb-1">{t.cropType}</label>
                   <select
                     value={selectedCrop}
                     onChange={(e) => setSelectedCrop(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs text-stone-900 font-medium"
                   >
-                    <option value="Maize">Maize (Chibage)</option>
-                    <option value="Tomatoes">Tomatoes (Madomasi)</option>
-                    <option value="Potatoes">Potatoes (Mbatata)</option>
+                    <option value="Maize">Maize (Chibage / Umumbu)</option>
+                    <option value="Tomatoes">Tomatoes (Madomasi / Amatamatisi)</option>
+                    <option value="Potatoes">Potatoes (Mbatata / Amagwili)</option>
                     <option value="Soya Beans">Soya Beans</option>
-                    <option value="Groundnuts">Groundnuts (Nzungu)</option>
-                    <option value="Sorghum">Sorghum (Mapfunde)</option>
-                    <option value="Cotton">Cotton (Donje)</option>
+                    <option value="Groundnuts">Groundnuts (Nzungu / Amazambane)</option>
+                    <option value="Sorghum">Sorghum (Mapfunde / Amabele)</option>
+                    <option value="Cotton">Cotton (Donje / Ukotini)</option>
                     <option value="Tobacco">Flue-cured Tobacco</option>
                     <option value="Custom">Custom / Other Crop...</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="font-semibold text-stone-700 block mb-1">Growth Stage</label>
+                  <label className="font-semibold text-stone-700 block mb-1">{t.growthStage}</label>
                   <select
                     value={selectedStage}
                     onChange={(e) => setSelectedStage(e.target.value)}
@@ -305,25 +323,25 @@ export const CropScanner: React.FC<CropScannerProps> = ({
               {selectedCrop === "Custom" && (
                 <div>
                   <label className="font-semibold text-stone-700 block mb-1">
-                    Custom Crop Name
+                    {t.customCropName}
                   </label>
                   <input
                     type="text"
                     value={customCropName}
                     onChange={(e) => setCustomCropName(e.target.value)}
-                    placeholder="e.g. Sweet Potatoes, Onions, Cabbage, Citrus, Banana..."
+                    placeholder={t.customCropPlaceholder}
                     className="w-full bg-stone-50 border border-emerald-400 rounded-lg p-2 text-xs text-stone-900 font-medium placeholder:text-stone-400 outline-none ring-1 ring-emerald-500/20"
                   />
                 </div>
               )}
 
               <div>
-                <label className="font-semibold text-stone-700 block mb-1">Field Observations</label>
+                <label className="font-semibold text-stone-700 block mb-1">{t.fieldObservations}</label>
                 <textarea
                   rows={2}
                   value={farmerObservations}
                   onChange={(e) => setFarmerObservations(e.target.value)}
-                  placeholder="e.g. Dark spots spreading on fruit and leaves after 3 days of rain; no insect holes seen."
+                  placeholder={t.fieldObservationsPlaceholder}
                   className="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-xs text-stone-900 placeholder:text-stone-400 outline-none"
                 />
               </div>
@@ -338,12 +356,12 @@ export const CropScanner: React.FC<CropScannerProps> = ({
               {analyzing ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Analyzing Field Symptoms...</span>
+                  <span>{t.btnAnalyzing}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>Analyze Crop Symptoms</span>
+                  <span>{t.btnAnalyze}</span>
                 </>
               )}
             </button>
@@ -356,7 +374,7 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                 rel="noopener noreferrer"
                 className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-1.5"
               >
-                <span>Or send photo to WhatsApp Bot (+1 646 589-4168)</span>
+                <span>{t.whatsAppBotLink}</span>
                 <ArrowRight className="w-3 h-3" />
               </a>
             </div>
@@ -370,48 +388,52 @@ export const CropScanner: React.FC<CropScannerProps> = ({
               <RefreshCw className="w-10 h-10 animate-spin text-emerald-600 mx-auto" />
               <div className="space-y-1">
                 <h3 className="font-bold text-stone-900 text-base">
-                  Analyzing Visible Symptoms...
+                  {t.btnAnalyzing}
                 </h3>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                  Examining leaf chlorosis, necrotic margins, water-soaked rot, vein patterns, perforation, and contextual growth stage...
+                  {language === "Shona"
+                    ? "Kuri kuongororwa zviratidzo zvemashizha, mavara, makomba ezvipfukuto, uye danho rekukura kwechirimwa..."
+                    : language === "Ndebele"
+                    ? "Kusahlolwa izimpawu zamakhasi, amabala ezifo, amabhobo ezinambuzane, lesigaba sokukhula kwesilimo..."
+                    : "Examining leaf chlorosis, necrotic margins, water-soaked rot, vein patterns, perforation, and contextual growth stage..."}
                 </p>
               </div>
             </div>
-          ) : assessment ? (
+          ) : displayAssessment ? (
             <div className="space-y-4 animate-fadeIn">
               {/* Card 1: Diagnostic Assessment & Confidence */}
               <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500">
-                      CROP: {assessment.crop}
+                      {t.cropLabel}: {displayAssessment.crop}
                     </span>
                     <h3 className="text-lg font-bold text-stone-900 font-['Outfit',sans-serif]">
-                      Visible Symptom Assessment
+                      {t.visibleSymptomAssessment}
                     </h3>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-[10px] text-stone-400 block font-semibold">CONFIDENCE</span>
+                    <span className="text-[10px] text-stone-400 block font-semibold">{t.confidenceLabel}</span>
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        assessment.confidence === "High"
+                        displayAssessment.confidence.includes("High") || displayAssessment.confidence.includes("Pamusoro") || displayAssessment.confidence.includes("Phezulu")
                           ? "bg-emerald-100 text-emerald-800"
-                          : assessment.confidence === "Medium"
+                          : displayAssessment.confidence.includes("Medium") || displayAssessment.confidence.includes("Pakati") || displayAssessment.confidence.includes("Phakathi")
                           ? "bg-amber-100 text-amber-800"
                           : "bg-stone-200 text-stone-700"
                       }`}
                     >
-                      {assessment.confidence} Confidence
+                      {displayAssessment.confidence}
                     </span>
                   </div>
                 </div>
 
                 {/* Possible issues */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-stone-700">Possible Causes:</span>
+                  <span className="text-xs font-bold text-stone-700">{t.possibleCauses}</span>
                   <div className="space-y-2">
-                    {assessment.possibleIssues.map((issue, idx) => (
+                    {displayAssessment.possibleIssues.map((issue, idx) => (
                       <div
                         key={idx}
                         className="p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1"
@@ -421,7 +443,7 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                             {issue.name}
                           </h4>
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-stone-200 text-stone-800">
-                            Likelihood: {issue.likelihood}
+                            {t.likelihoodLabel}: {issue.likelihood}
                           </span>
                         </div>
                         {issue.scientificName && (
@@ -437,9 +459,9 @@ export const CropScanner: React.FC<CropScannerProps> = ({
 
                 {/* Visible Symptoms */}
                 <div className="space-y-1.5 pt-2">
-                  <span className="text-xs font-bold text-stone-700">What Mufarm Sees (Visible Symptoms):</span>
+                  <span className="text-xs font-bold text-stone-700">{t.whatMufarmSees}</span>
                   <ul className="space-y-1 text-xs text-stone-600">
-                    {assessment.visibleSymptoms.map((sym, sIdx) => (
+                    {displayAssessment.visibleSymptoms.map((sym, sIdx) => (
                       <li key={sIdx} className="flex items-start gap-2">
                         <span className="text-emerald-600 font-bold">•</span>
                         <span>{sym}</span>
@@ -454,10 +476,10 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                 <div className="space-y-2">
                   <h4 className="font-bold text-xs text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
                     <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
-                    What to check next on the plant:
+                    {t.whatToCheckNext}
                   </h4>
                   <ul className="space-y-1 text-xs text-stone-600">
-                    {assessment.whatToCheckNext.map((chk, cIdx) => (
+                    {displayAssessment.whatToCheckNext.map((chk, cIdx) => (
                       <li key={cIdx} className="flex items-start gap-2 bg-blue-50/50 p-2 rounded-lg border border-blue-100">
                         <span className="text-blue-700 font-bold">✓</span>
                         <span>{chk}</span>
@@ -473,7 +495,7 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                     {t.whatShouldIDoNext}
                   </div>
                   <ul className="space-y-1.5 text-xs text-emerald-950 font-medium">
-                    {assessment.recommendedAction.map((act, aIdx) => (
+                    {displayAssessment.recommendedAction.map((act, aIdx) => (
                       <li key={aIdx} className="flex items-start gap-2">
                         <span className="text-emerald-700 font-bold">1.{aIdx + 1}</span>
                         <span>{act}</span>
@@ -487,23 +509,29 @@ export const CropScanner: React.FC<CropScannerProps> = ({
                   <div>
                     <span className="font-bold text-stone-900 flex items-center gap-1">
                       <PhoneCall className="w-3.5 h-3.5 text-amber-600" />
-                      When to escalate to an extension officer:
+                      {t.escalateHeader}
                     </span>
                     <p className="text-[11px] text-stone-600 mt-0.5">
-                      {assessment.escalation?.trigger || "Consult local Agritex officer if symptoms spread to more than 15% of your crop."}
+                      {displayAssessment.escalation?.trigger || (
+                        language === "Shona"
+                          ? "Batai mudhumeni weAgritex kana zviratidzo zvikapararira kudarika 15% yezvirimwa zvenyu."
+                          : language === "Ndebele"
+                          ? "Bikela umeluleki weAgritex nxa izimpawu zithelela okudlula 15% wesilimo sakho."
+                          : "Consult local Agritex officer if symptoms spread to more than 15% of your crop."
+                      )}
                     </p>
                   </div>
                   <button
-                    onClick={() => onOpenEscalation(assessment)}
-                    className="px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs whitespace-nowrap shadow-sm"
+                    onClick={() => onOpenEscalation(displayAssessment)}
+                    className="px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs whitespace-nowrap shadow-sm cursor-pointer"
                   >
-                    Escalate to Agritex
+                    {t.btnEscalate}
                   </button>
                 </div>
 
                 {/* Limitation & Responsible AI notice */}
                 <p className="text-[10px] text-stone-500 italic pt-1 border-t border-stone-100">
-                  {assessment.disclaimer}
+                  {displayAssessment.disclaimer}
                 </p>
               </div>
             </div>
@@ -511,10 +539,10 @@ export const CropScanner: React.FC<CropScannerProps> = ({
             <div className="bg-stone-50 rounded-2xl p-10 border border-dashed border-stone-300 text-center space-y-3">
               <Sparkles className="w-8 h-8 text-emerald-600 mx-auto" />
               <h3 className="font-bold text-sm text-stone-800">
-                Ready to Analyze Crop Symptoms
+                {t.readyToAnalyze}
               </h3>
               <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                Select one of the real field samples above or upload your own leaf photo, then click <strong>"Analyze Crop Symptoms"</strong>.
+                {t.readyToAnalyzeDesc}
               </p>
             </div>
           )}

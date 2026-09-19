@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Send,
   Sparkles,
@@ -14,6 +14,7 @@ import {
   AlertCircle,
   ArrowRight,
   ShieldCheck,
+  Languages,
 } from "lucide-react";
 import { ChatMessage, Language, FarmerProfile } from "../types";
 import { TRANSLATIONS } from "../data/translations";
@@ -21,13 +22,57 @@ import { MundaAiLogo } from "./MundaAiLogo";
 
 interface AskMufarmChatProps {
   language: Language;
+  onLanguageChange?: (newLang: Language) => void;
   farmer: FarmerProfile;
   onOpenEscalation: () => void;
   onOpenScanner: () => void;
 }
 
+const getInitialWelcome = (lang: Language, farmer: FarmerProfile): string => {
+  if (lang === "Shona") {
+    return `Mhoroi Tendai! Ndini **Mufarm**, murairidzi wenyu wezvekurima (AI Agronomist) muZimbabwe. Ndakaisa ruzivo rwepurazi renyu riri ku**Mashonaland West (${farmer.areaHa}ha ${farmer.primaryCrop}, ${farmer.variety}, ${farmer.growthStage})**. \n\nNdingakubatsirai nei mumunda nhasi? Munogona kundibvunza nezvezviratidzo zvezvirwere zviri pamashizha, kutarisa kana mvura ichitendera kudiridza, kuverenga fotereza yePfumvudza, kana kutarisa mitengo yechibage paMbare Musika neGMB.`;
+  }
+  if (lang === "Ndebele") {
+    return `Salibonani Tendai! Ngingu **Mufarm**, umeluleki wenu wezokulima (AI Agronomist) eZimbabwe. Sengilolwazi lwepulazi lenu elise**Mashonaland West (${farmer.areaHa}ha ${farmer.primaryCrop}, ${farmer.variety}, ${farmer.growthStage})**. \n\nNgingalisiza ngani epulazini lamuhla? Lingangibuza ngezifo zezilimo, ukuhlola nxa kumele linisele, ukubala umquba we-Intwasa, kumbe intengo yomumbu eMbare Musika leGMB.`;
+  }
+  return `Hello Tendai! I am **Mufarm**, your AI Agronomist for Zimbabwe. I have your farm profile loaded for **Mashonaland West (${farmer.areaHa}ha ${farmer.primaryCrop}, ${farmer.variety}, ${farmer.growthStage})**. \n\nHow can I assist your field today? You can ask me about symptoms on your crop, check whether rainfall allows irrigation, calculate Pfumvudza fertilizer, or check current Mbare Musika grain prices.`;
+};
+
+const getInitialFollowUps = (lang: Language): string[] => {
+  if (lang === "Shona") {
+    return [
+      "Mashizha echibage changu ari kuita yero. Ndoita sei?",
+      "Ndinofanira kudiridza Zone B nhasi here?",
+      "Ndingatengese kupi chibage changu?",
+    ];
+  }
+  if (lang === "Ndebele") {
+    return [
+      "Amakhasi omumbu wami ayaphuzi. Kumele ngenzeni?",
+      "Kumele nginisele iZone B lamuhla na?",
+      "Ngingathengisa ngaphi umumbu wami?",
+    ];
+  }
+  return [
+    "My maize leaves are turning yellow. What should I do?",
+    "Should I irrigate Zone B today?",
+    "Where should I consider selling my maize?",
+  ];
+};
+
+const getInitialNextStep = (lang: Language): string => {
+  if (lang === "Shona") {
+    return "Sarudzai mubvunzo uri pamusoro kana kunyora zvamuri kuona mumunda menyu.";
+  }
+  if (lang === "Ndebele") {
+    return "Khethani umbuzo ongasenhla loba nibhale lokho elikubonayo epulazini.";
+  }
+  return "Select a question above or type what you are observing in your field.";
+};
+
 export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
   language,
+  onLanguageChange,
   farmer,
   onOpenEscalation,
   onOpenScanner,
@@ -38,48 +83,150 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
     {
       id: "initial",
       role: "assistant",
-      content: `Mhoroi Tendai! I am **Mufarm**, your AI Agronomist for Zimbabwe. I have your farm profile loaded for **Mashonaland West (2ha Maize, SC 719, Vegetative stage)**. \n\nHow can I assist your field today? You can ask me about symptoms on your crop, check whether rainfall allows irrigation, calculate Pfumvudza fertilizer, or check current Mbare Musika grain prices.`,
+      content: getInitialWelcome(language, farmer),
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      followUpQuestions: [
-        "My maize leaves are turning yellow. What should I do?",
-        "Should I irrigate Zone B today?",
-        "Where should I consider selling my maize?",
-      ],
-      actionableNextStep: "Select a question above or type what you are observing in your field.",
+      followUpQuestions: getInitialFollowUps(language),
+      actionableNextStep: getInitialNextStep(language),
     },
   ]);
 
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [activeToolRunning, setActiveToolRunning] = useState<string | null>(null);
 
-  const presetQueries = [
-    {
-      label: "Yellowing Maize (Reasoning Demo)",
-      query: "My maize leaves are turning yellow. What should I do?",
-      tag: "Conversational Reasoning",
-    },
-    {
-      label: "Irrigation Check (Tool Calling Demo)",
-      query: "Should I irrigate my maize today?",
-      tag: "Tools: Weather + Soil",
-    },
-    {
-      label: "Grain Selling (Market Tool Demo)",
-      query: "Where should I consider selling my maize?",
-      tag: "Tools: Mbare + GMB",
-    },
-    {
-      label: "Shona Planting Query (Multilingual Demo)",
-      query: "Ndirime chibage riini muRegion II?",
-      tag: "Shona AI Reasoning",
-    },
-    {
-      label: "Pfumvudza Fertilizer Calculation",
-      query: "Calculate Pfumvudza fertilizer for 3 standard plots",
-      tag: "Tools: Fertilizer Calc",
-    },
-  ];
+  // Synchronize initial welcome message when user changes language
+  useEffect(() => {
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === "initial") {
+          return {
+            ...msg,
+            content: getInitialWelcome(language, farmer),
+            followUpQuestions: getInitialFollowUps(language),
+            actionableNextStep: getInitialNextStep(language),
+          };
+        }
+        return msg;
+      })
+    );
+  }, [language, farmer]);
+
+  const presetQueries = useMemo(() => {
+    if (language === "Shona") {
+      return [
+        {
+          label: "Mashizha eYero (Kuziva Zvirwere)",
+          query: "Mashizha echibage changu ari kuita yero. Ndoita sei?",
+          tag: "Zano reAI",
+        },
+        {
+          label: "Kudiridza Chibage Nhasi?",
+          query: "Ndinofanira kudiridza chibage changu nhasi here?",
+          tag: "Mvura + Ivhu",
+        },
+        {
+          label: "Misika yeChibage (GMB ne Mbare)",
+          query: "Ndingatengese kupi chibage changu?",
+          tag: "Misika: Mbare/GMB",
+        },
+        {
+          label: "Nguva Yekudyara muRegion II",
+          query: "Ndirime chibage riini muRegion II?",
+          tag: "Nguva yeMwaka",
+        },
+        {
+          label: "Fetereza yePfumvudza (Maplots 3)",
+          query: "Verenga fotereza yePfumvudza pamaplots matatu echibage",
+          tag: "Chiverengo",
+        },
+      ];
+    }
+    if (language === "Ndebele") {
+      return [
+        {
+          label: "Amakhasi Aphuzi (Ukuhlola Izifo)",
+          query: "Amakhasi omumbu wami ayaphuzi. Kumele ngenzeni?",
+          tag: "Ukucubungula",
+        },
+        {
+          label: "Ukunisela Umumbu Lamuhla?",
+          query: "Kumele nginisele umumbu wami lamuhla na?",
+          tag: "Izulu + Umhlabathi",
+        },
+        {
+          label: "Ukuthengisa Umumbu (GMB le Mbare)",
+          query: "Ngingathengisa ngaphi umumbu wami?",
+          tag: "Izimakethe",
+        },
+        {
+          label: "Isikhathi Sokuhlanyela kuRegion II",
+          query: "Kumele ngihlanyele nini umumbu kuRegion II?",
+          tag: "Isikhathi Sokulima",
+        },
+        {
+          label: "Umquba we-Intwasa (Izigaba 3)",
+          query: "Bala umquba we-Intwasa ezigabeni ezi-3",
+          tag: "Isibalo Somquba",
+        },
+      ];
+    }
+    return [
+      {
+        label: "Yellowing Maize (Reasoning Demo)",
+        query: "My maize leaves are turning yellow. What should I do?",
+        tag: "Conversational Reasoning",
+      },
+      {
+        label: "Irrigation Check (Tool Calling Demo)",
+        query: "Should I irrigate my maize today?",
+        tag: "Tools: Weather + Soil",
+      },
+      {
+        label: "Grain Selling (Market Tool Demo)",
+        query: "Where should I consider selling my maize?",
+        tag: "Tools: Mbare + GMB",
+      },
+      {
+        label: "Shona Planting Query (Multilingual Demo)",
+        query: "Ndirime chibage riini muRegion II?",
+        tag: "Shona AI Reasoning",
+      },
+      {
+        label: "Pfumvudza Fertilizer Calculation",
+        query: "Calculate Pfumvudza fertilizer for 3 standard plots",
+        tag: "Tools: Fertilizer Calc",
+      },
+    ];
+  }, [language]);
+
+  const translateMessage = async (msgId: string, text: string, targetLang: Language) => {
+    setTranslatingId(msgId);
+    try {
+      const res = await fetch("/api/ai/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, targetLanguage: targetLang }),
+      });
+      const data = await res.json();
+      if (data.translatedText) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId
+              ? {
+                  ...m,
+                  content: data.translatedText,
+                }
+              : m
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Translate error:", err);
+    } finally {
+      setTranslatingId(null);
+    }
+  };
 
   const sendMessage = async (messageText: string) => {
     if (!messageText.trim() || loading) return;
@@ -97,11 +244,11 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
 
     // If message implies tools, show brief tool indicator for visual delight
     const lower = messageText.toLowerCase();
-    if (lower.includes("irrigate") || lower.includes("water") || lower.includes("kudiridza")) {
+    if (lower.includes("irrigate") || lower.includes("water") || lower.includes("kudiridza") || lower.includes("nisele")) {
       setActiveToolRunning("getWeather('Mashonaland West') & getSoilMoisture('zone-a')");
-    } else if (lower.includes("market") || lower.includes("sell") || lower.includes("mutengo") || lower.includes("gmb")) {
+    } else if (lower.includes("market") || lower.includes("sell") || lower.includes("mutengo") || lower.includes("gmb") || lower.includes("thengisa")) {
       setActiveToolRunning("getMarketPrices('Maize')");
-    } else if (lower.includes("fertilizer") || lower.includes("pfumvudza") || lower.includes("mupfudze")) {
+    } else if (lower.includes("fertilizer") || lower.includes("pfumvudza") || lower.includes("mupfudze") || lower.includes("umquba")) {
       setActiveToolRunning("calculateFertilizer({ crop: 'Maize' })");
     }
 
@@ -138,7 +285,12 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "Sorry, I had trouble reaching the AI service. Please check your connectivity or try again.",
+          content:
+            language === "Shona"
+              ? "Tine hurombo, paita dambudziko rekubata AI service. Ndapota ongororai netiweki yenyu moyedza zvakare."
+              : language === "Ndebele"
+              ? "Uxolo, kube lohlupho lokufinyelela ku-AI service. Sicela lihlole inethiwekhi yenu bese lizama njalo."
+              : "Sorry, I had trouble reaching the AI service. Please check your connectivity or try again.",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
@@ -156,7 +308,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
               <Cpu className="w-3.5 h-3.5" />
-              AI Agronomy Engine
+              {t.chatEngineBadge}
             </span>
             <a
               href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
@@ -165,32 +317,52 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
               className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#25D366]/20 text-emerald-800 border border-[#25D366]/40 hover:bg-[#25D366]/30 transition-colors"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-              <span>WhatsApp Bot: +1 (646) 589-4168</span>
+              <span>{t.whatsAppBotBadge}</span>
             </a>
-            <span className="text-xs font-semibold text-stone-500">• Grounded Tools Active</span>
+            <span className="text-xs font-semibold text-stone-500">• {t.groundedToolsActive}</span>
           </div>
           <h2 className="text-xl font-bold text-stone-900 mt-1 font-['Outfit',sans-serif]">
-            Ask mundaai — Interactive Agronomic Advisory
+            {t.chatTitle}
           </h2>
           <p className="text-xs text-stone-600">
-            Current Farm Context: <strong>{farmer.name} • {farmer.district}, {farmer.naturalRegion} • {farmer.areaHa}ha {farmer.primaryCrop} ({farmer.variety})</strong>
+            {t.farmContextPrefix} <strong>{farmer.name} • {farmer.district}, {farmer.naturalRegion} • {farmer.areaHa}ha {farmer.primaryCrop} ({farmer.variety})</strong>
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {/* In-chat language switcher pills */}
+          {onLanguageChange && (
+            <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200">
+              <Languages className="w-3.5 h-3.5 text-stone-500 ml-1.5 mr-0.5" />
+              {(["English", "Shona", "Ndebele"] as Language[]).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => onLanguageChange(lang)}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                    language === lang
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-stone-600 hover:text-stone-900 hover:bg-stone-200"
+                  }`}
+                >
+                  {lang === "Shona" ? "ChiShona" : lang === "Ndebele" ? "isiNdebele" : "English"}
+                </button>
+              ))}
+            </div>
+          )}
+
           <a
             href="https://wa.me/16465894168?text=Hello%20mundaai%2C%20I%20need%20farming%20advice"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-stone-950 text-xs font-bold shadow-sm transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-stone-950 text-xs font-bold shadow-sm transition-colors"
           >
-            <span>Ask on WhatsApp (+1 646 589-4168)</span>
+            <span>{t.askOnWhatsApp}</span>
           </a>
           <button
             onClick={onOpenScanner}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold border border-stone-300 transition-colors whitespace-nowrap self-start md:self-auto"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold border border-stone-300 transition-colors whitespace-nowrap self-start md:self-auto"
           >
-            <span>Scan Leaf Photo</span>
+            <span>{t.scanLeafBtn}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -198,9 +370,14 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
 
       {/* Preset 1-Click Field Inquiries */}
       <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200 space-y-2">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-          1-Click Field Inquiries & Scenarios:
-        </span>
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+            {t.presetScenariosHeader}
+          </span>
+          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+            {language === "Shona" ? "ChiShona Chakabatidzwa" : language === "Ndebele" ? "isiNdebele Sisasebenza" : "English Active"}
+          </span>
+        </div>
         <div className="flex flex-wrap gap-2">
           {presetQueries.map((item, idx) => (
             <button
@@ -238,12 +415,34 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                   <div className="flex items-center justify-between border-b border-stone-200/80 pb-2 text-xs">
                     <div className="flex items-center gap-2">
                       <MundaAiLogo variant="icon" size="sm" iconClassName="w-6 h-6 rounded-md" />
-                      <span className="font-bold text-stone-900 font-['Outfit',sans-serif]">mundaai Agronomist</span>
+                      <span className="font-bold text-stone-900 font-['Outfit',sans-serif]">Mufarm Agronomist</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-semibold border border-amber-200">
                         Zimbabwe
                       </span>
                     </div>
-                    <span className="text-[10px] text-stone-400">{msg.timestamp}</span>
+                    <div className="flex items-center gap-2">
+                      {/* Translate button if message might be in a different language */}
+                      {msg.id !== "initial" && (
+                        <button
+                          onClick={() => translateMessage(msg.id, msg.content, language)}
+                          disabled={translatingId === msg.id}
+                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-stone-200 hover:bg-stone-300 text-stone-700 transition-colors"
+                          title={`Translate to ${language}`}
+                        >
+                          <Languages className="w-3 h-3 text-stone-500" />
+                          <span>
+                            {translatingId === msg.id
+                              ? "..."
+                              : language === "Shona"
+                              ? "Dudzira kuChiShona"
+                              : language === "Ndebele"
+                              ? "Tolika ngesiNdebele"
+                              : "Translate to English"}
+                          </span>
+                        </button>
+                      )}
+                      <span className="text-[10px] text-stone-400">{msg.timestamp}</span>
+                    </div>
                   </div>
                 )}
 
@@ -253,9 +452,9 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                     <div className="flex items-center justify-between text-stone-700 font-bold text-[11px] border-b border-stone-100 pb-1">
                       <span className="flex items-center gap-1.5 text-blue-700">
                         <Wrench className="w-3.5 h-3.5" />
-                        Automated Telemetry & Tools Executed
+                        {t.telemetryToolsHeader}
                       </span>
-                      <span className="text-[10px] text-stone-400 font-mono">Real-time Tool Bus</span>
+                      <span className="text-[10px] text-stone-400 font-mono">{t.toolBusLabel}</span>
                     </div>
 
                     <div className="space-y-1.5">
@@ -320,7 +519,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                   <div className="space-y-1.5 pt-1">
                     <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1">
                       <HelpCircle className="w-3 h-3" />
-                      Follow-up questions to pinpoint diagnosis:
+                      {t.followUpQuestionsHeader}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {msg.followUpQuestions.map((q, qIdx) => (
@@ -342,17 +541,17 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
                     <div>
                       <span className="font-bold flex items-center gap-1 text-amber-900">
                         <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                        Human Extension Escalation Recommended
+                        {t.escalationRecommendedHeader}
                       </span>
                       <p className="text-[11px] text-amber-800">
-                        This issue warrants on-site inspection by your Ward Agritex extension officer.
+                        {t.escalationRecommendedDesc}
                       </p>
                     </div>
                     <button
                       onClick={onOpenEscalation}
                       className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs whitespace-nowrap shadow-sm"
                     >
-                      Connect with Officer
+                      {t.btnConnectOfficer}
                     </button>
                   </div>
                 )}
@@ -372,7 +571,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
               <div className="bg-stone-50 border border-stone-200 rounded-2xl rounded-tl-none p-4 text-xs text-stone-700 space-y-2 max-w-sm">
                 <div className="flex items-center gap-2 font-semibold text-emerald-700">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>mundaai AI is reasoning & consulting tools...</span>
+                  <span>{t.reasoningWaiting}</span>
                 </div>
                 {activeToolRunning && (
                   <div className="p-2 rounded bg-stone-100 font-mono text-[10px] text-stone-600 border border-stone-200">
@@ -392,13 +591,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage(inputText)}
-              placeholder={
-                language === "Shona"
-                  ? "Bvunza Mufarm nezvembeu, mamiriro ekunze, kana kudiridza..."
-                  : language === "Ndebele"
-                  ? "Buza uMufarm ngezilimo, umkhathi, loba ukunisela..."
-                  : "Ask Mufarm (e.g. 'Should I irrigate today?', 'My leaves have holes', 'Maize price at Mbare')..."
-              }
+              placeholder={t.inputPlaceholder}
               className="flex-1 bg-white border border-stone-300 focus:border-emerald-600 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-stone-900 outline-none shadow-sm transition-all"
             />
 
@@ -407,7 +600,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
               disabled={loading || !inputText.trim()}
               className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm"
             >
-              <span>Ask</span>
+              <span>{t.btnAsk}</span>
               <Send className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -417,7 +610,7 @@ export const AskMufarmChat: React.FC<AskMufarmChatProps> = ({
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               {t.disclaimerNotice}
             </span>
-            <span className="font-mono text-[10px]">AI Agronomist • Grounded in Zimbabwe Extension Data</span>
+            <span className="font-mono text-[10px]">{t.groundedNotice}</span>
           </div>
         </div>
       </div>

@@ -98,6 +98,7 @@ export default function App() {
         {currentTab === "ask" && (
           <AskMufarmChat
             language={language}
+            onLanguageChange={setLanguage}
             farmer={farmer}
             onOpenEscalation={() => handleOpenEscalation()}
             onOpenScanner={() => setCurrentTab("scan")}
